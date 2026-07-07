@@ -1,0 +1,133 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.*.php
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# Laravel / PHP
+vendor/
+bootstrap/cache/
+storage/app/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/testing/*
+storage/framework/views/*
+storage/logs/*
+!storage/app/.gitkeep
+!storage/framework/.gitkeep
+!storage/logs/.gitkeep
+database/database.sqlite
+database/database.sqlite-shm
+database/database.sqlite-wal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# PHP tools cache
+.php_cs.cache
+.phpstan.cache
+.phpunit.result.cache
+.cache/
+.pint.cache
+
+# Node.js / npm / yarn
+node_modules/
+npm-debug.log
+npm-error.log
+yarn-error.log
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+pnpm-lock.yaml
+
+# Build artifacts
+dist/
+build/
+coverage/
+.coverage
+.nyc_output/
+public/hot
+public/storage
+
+# Development / Testing
+.phpunit.xml
+phpunit.log
+.rspec
+rspec.log
+
+# Docker
+docker-compose.override.yaml
+docker-compose.override.yml
+.docker-sync
+.docker-sync/
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Various logs and outputs
+*.log
+logs/
+*.pot
+
+# macOS
+.AppleDouble
+.AppleDB
+.com.apple.timemachine.donotpresent
+
+# Windows
+.lnk
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+.~*
+
+# Editor temp files
+.editorconfig.bak
+*.orig
+
+# Local overrides
+.env.local
+.env.dusk.local
+.env.testing.local
+.env.testing
+
+# PeakDict / Pest
+.test
+test-results/
+
+# Composer
+composer.lock
+
+# Git
+.git/
+
+# Archive
+*.zip
+*.tar.gz
+*.rar
+
