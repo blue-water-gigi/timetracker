@@ -74,3 +74,5 @@ ehthumbs.db
 .yarn/unplugged/
 .yarn/build-state.yml
 .yarn/install-state.gz
+/schemas
+/.ai
