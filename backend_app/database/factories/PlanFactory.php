@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Models\Plan;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use JsonException;
 
 /**
  * @extends Factory<Plan>

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Database\Factories\PlanFactory;
@@ -22,6 +24,6 @@ class Plan extends Model
 
     public function workspace(): HasMany
     {
-        $this->hasMany(Workspace::class);
+        return $this->hasMany(Workspace::class);
     }
 }
