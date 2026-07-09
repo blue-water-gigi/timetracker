@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\SystemRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,7 +24,9 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'workspace_id',
-        'name',
+        'nickname',
+        'first_name',
+        'last_name',
         'system_role',
         'email',
         'password',
@@ -49,6 +52,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'system_role' => SystemRole::class,
         ];
     }
 

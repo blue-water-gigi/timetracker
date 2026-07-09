@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Workspace;
 use Illuminate\Database\Seeder;
 
 class WorkspaceSeeder extends Seeder
@@ -11,6 +12,14 @@ class WorkspaceSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        Workspace::factory()->create([
+            'name' => 'Duckies LSC',
+            'slug' => 'duckies',
+        ]);
+
+        Workspace::factory()->create([
+            'name' => 'Google LSC',
+            'slug' => 'google',
+        ]);
     }
 }
