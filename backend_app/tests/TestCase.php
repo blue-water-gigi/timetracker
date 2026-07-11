@@ -8,5 +8,10 @@ use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
-    //
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withHeader('Origin', config('app.url').':8000');
+        $this->withHeader('Referer', config('app.url').':8000/');
+    }
 }

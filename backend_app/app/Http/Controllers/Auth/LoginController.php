@@ -5,41 +5,32 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginUserRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
+use Auth;
+use Illuminate\Http\JsonResponse;
 
 class LoginController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
-    public function index(): void
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): void
+    public function store(LoginUserRequest $request): JsonResponse
     {
-        //
-    }
+        $validated = $request->validated();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(User $user): void
-    {
-        //
-    }
+        if (! Auth::attempt($validated)) {
+            return response()->json([
+                'message' => 'Theres no user with such credentials.',
+            ], 422);
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, User $user): void
-    {
-        //
+        $request->session()->regenerate();
+
+        return response()->json([
+            'message' => 'User logged in successfully.',
+            'user' => $request->user(),
+        ], 201);
     }
 
     /**
@@ -47,6 +38,6 @@ class LoginController extends Controller
      */
     public function destroy(User $user): void
     {
-        //
+        Auth::logout();
     }
 }

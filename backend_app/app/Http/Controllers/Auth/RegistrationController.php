@@ -7,10 +7,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterUserRequest;
 use App\Models\User;
-use App\Models\Workspace;
+use Auth;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Throwable;
 
 class RegistrationController extends Controller
 {
@@ -21,18 +19,12 @@ class RegistrationController extends Controller
     {
         $user = User::create($request->validated());
 
-        return response()->json([
-            'message' => 'User successfully registered',
-            'data' => $request->validated(),
-        ]);
-    }
+        Auth::login($user);
+        $request->session()->regenerate();
 
-    /**
-     * Remove the specified resource from storage.
-     * @throws Throwable
-     */
-    public function destroy(User $user): void
-    {
-        $user->deleteOrFail();
+        return response()->json([
+            'message' => 'User successfully registered.',
+            'user' => $user,
+        ], 201);
     }
 }
