@@ -9,6 +9,7 @@ use App\Http\Requests\LoginUserRequest;
 use App\Models\User;
 use Auth;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -19,7 +20,7 @@ class LoginController extends Controller
     {
         $validated = $request->validated();
 
-        if (! Auth::attempt($validated)) {
+        if (!Auth::attempt($validated)) {
             return response()->json([
                 'message' => 'Theres no user with such credentials.',
             ], 422);
@@ -36,8 +37,15 @@ class LoginController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user): void
+    public function destroy(Request $request): JsonResponse
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json([
+            'message' => 'User logged out successfully.',
+        ], 201);
     }
 }
