@@ -1,13 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Http\Requests;
+namespace App\Http\Requests\Workspace;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class LoginUserRequest extends FormRequest
+class UpdateWorkspaceRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,8 +24,11 @@ class LoginUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
+            'name' => ['sometimes', 'string', 'max:255'],
+            'slug' => ['sometimes', 'string', 'max:255'],
+            'description' => ['sometimes', 'string', 'max:1024'],
+            'active' => ['sometimes', 'boolean'],
+            'organization_id' => ['sometimes', 'integer', Rule::exists('organizations', 'id')]
         ];
     }
 }

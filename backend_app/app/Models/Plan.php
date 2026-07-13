@@ -22,8 +22,8 @@ class Plan extends Model
         'is_active',
     ];
 
-    public function workspace(): HasMany
+    public function organizations(): HasMany
     {
-        return $this->hasMany(Workspace::class);
+        return $this->hasMany(Organization::class);
     }
 }

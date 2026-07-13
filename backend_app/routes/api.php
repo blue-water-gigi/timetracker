@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegistrationController;
+use App\Http\Controllers\Organization\OrganizationController;
 use App\Http\Controllers\TestController;
+use App\Http\Controllers\Workspace\WorkspaceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +21,9 @@ Route::get('health', fn(Request $request) => response()->json([
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::delete('logout', [LoginController::class, 'destroy']);
+
+    Route::apiResource('organizations', OrganizationController::class);
+    Route::apiResource('workspaces', WorkspaceController::class);
 });
 
 Route::middleware('guest.api')->group(function () {

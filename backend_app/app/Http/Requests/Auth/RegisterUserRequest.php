@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Auth;
 
-use App\Enums\SystemRole;
+use App\Enums\Role;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -30,9 +30,9 @@ class RegisterUserRequest extends FormRequest
         return [
             'workspace_id' => ['required', Rule::exists('workspaces', 'id')],
             'nickname' => ['required', 'string', 'min:1', 'max:30', 'regex:/^[\pL\pN_-]+$/u', Rule::unique('users', 'nickname')],
-            'first_name' => ['nullable', 'string', 'min:2', 'max:50', $this->nameRegexRules('first_name')],
-            'last_name' => ['nullable', 'string', 'min:2', 'max:50', $this->nameRegexRules('last_name')],
-            'system_role' => ['nullable', 'string', Rule::enum(SystemRole::class)->only(SystemRole::USER)],
+            'first_name' => ['nullable', 'sometimes', 'string', 'min:2', 'max:50', $this->nameRegexRules('first_name')],
+            'last_name' => ['nullable', 'sometimes', 'string', 'min:2', 'max:50', $this->nameRegexRules('last_name')],
+            'system_role' => ['nullable', 'sometimes', 'string', Rule::enum(Role::class)->only(Role::USER)],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', Password::defaults()],
         ];

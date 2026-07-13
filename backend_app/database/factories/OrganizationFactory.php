@@ -3,28 +3,24 @@
 namespace Database\Factories;
 
 use App\Models\Organization;
-use App\Models\Workspace;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Random\RandomException;
 
 /**
- * @extends Factory<Workspace>
+ * @extends Factory<Organization>
  */
-class WorkspaceFactory extends Factory
+class OrganizationFactory extends Factory
 {
     /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
-     * @throws RandomException
      */
     public function definition(): array
     {
         return [
-            'name' => $this->faker->domainName(),
+            'name' => $this->faker->company(),
             'slug' => $this->faker->slug(),
-            'organization_id' => random_int(1, Organization::query()->count()),
-            'join_code' => $this->faker->unique()->uuid(),
+            'tin' => $this->faker->unique()->randomNumber(9),
         ];
     }
 }

@@ -1,9 +1,13 @@
 <?php
 
+use App\Models\Organization;
+use App\Models\Plan;
 use App\Models\User;
 use App\Models\Workspace;
 
 test('Guest can login with valid credentials', function () {
+    Plan::factory()->create();
+    Organization::factory()->create();
     $workspace = Workspace::factory()->create();
     $user = User::factory()->create([
         'workspace_id' => $workspace->id,
@@ -20,6 +24,8 @@ test('Guest can login with valid credentials', function () {
 });
 
 test('Login rejects invalid credentials', function () {
+    Plan::factory()->create();
+    Organization::factory()->create();
     $workspace = Workspace::factory()->create();
     $user = User::factory()->create([
         'workspace_id' => $workspace->id,
@@ -36,6 +42,8 @@ test('Login rejects invalid credentials', function () {
 });
 
 test('Auth user cannot login again', function () {
+    Plan::factory()->create();
+    Organization::factory()->create();
     $workspace = Workspace::factory()->create();
     $user = User::factory()->create([
         'workspace_id' => $workspace->id,

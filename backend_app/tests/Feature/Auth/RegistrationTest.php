@@ -1,9 +1,13 @@
 <?php
 
+use App\Models\Organization;
+use App\Models\Plan;
 use App\Models\User;
 use App\Models\Workspace;
 
 test('Guest can register', function () {
+    Plan::factory()->create();
+    Organization::factory()->create();
     $workspace = Workspace::factory()->create();
 
     $response = $this->postJson('/api/v1/register', [
@@ -39,6 +43,8 @@ test('Guest can register', function () {
 });
 
 test('Registration Requires valid payload', function () {
+    Plan::factory()->create();
+    Organization::factory()->create();
     $workspace = Workspace::factory()->create();
 
     $response = $this->postJson('/api/v1/register', [
@@ -57,6 +63,8 @@ test('Registration Requires valid payload', function () {
 });
 
 test('User cannot register with admin role', function () {
+    Plan::factory()->create();
+    Organization::factory()->create();
     $workspace = Workspace::factory()->create();
 
     $response = $this->postJson('/api/v1/register', [
@@ -72,6 +80,8 @@ test('User cannot register with admin role', function () {
 });
 
 test('Authenticated user cannot register again', function () {
+    Plan::factory()->create();
+    Organization::factory()->create();
     $workspace = Workspace::factory()->create();
     $user = User::factory()->create();
 

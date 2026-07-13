@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\LoginUserRequest;
-use App\Models\User;
+use App\Http\Requests\Auth\LoginUserRequest;
 use Auth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

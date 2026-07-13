@@ -13,13 +13,26 @@ class WorkspaceSeeder extends Seeder
     public function run(): void
     {
         Workspace::factory()->create([
-            'name' => 'Duckies LSC',
-            'slug' => 'duckies',
+            'name' => 'Department 1',
+            'slug' => 'juries',
+            'organization_id' => 1,
+            'join_code' => '12343242134',
         ]);
 
         Workspace::factory()->create([
-            'name' => 'Google LSC',
-            'slug' => 'google',
+            'name' => 'Department 2',
+            'slug' => 'test',
+            'organization_id' => 1,
+            'join_code' => '123asdfasdf234dsfa',
         ]);
+
+        Workspace::factory()->create([
+            'name' => 'Department 1',
+            'slug' => 'test2',
+            'organization_id' => 2,
+            'join_code' => '12343df24dsafsdaf2134',
+        ]);
+
+        Workspace::factory(30)->create();
     }
 }

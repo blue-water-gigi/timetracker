@@ -8,6 +8,9 @@ use Database\Factories\WorkspaceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use phpDocumentor\Reflection\Types\Boolean;
 
 class Workspace extends Model
 {
@@ -17,12 +20,26 @@ class Workspace extends Model
     protected $fillable = [
         'name',
         'slug',
-        'plan_id',
-        'subscription_status',
+        'description',
+        'active',
+        'organization_id',
+        'join_code',
     ];
 
-    public function plan(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(Plan::class);
+        return [
+            'active' => 'boolean',
+        ];
+    }
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
     }
 }
