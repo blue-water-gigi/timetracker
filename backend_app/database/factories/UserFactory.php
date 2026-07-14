@@ -1,35 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
+use App\Enums\SystemRole;
 use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Random\RandomException;
 
-/**
- * @extends Factory<User>
- */
+/** @extends Factory<User> */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     * @throws RandomException
-     */
+    /** @return array<string, mixed> */
     public function definition(): array
     {
         return [
-            'nickname' => fake()->unique()->userName(),
-//            'workspace_id' => random_int(1, Workspace::count()),
+            'workspace_id' => Workspace::factory(),
+            'system_role' => SystemRole::EMPLOYEE,
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),
@@ -39,12 +31,25 @@ class UserFactory extends Factory
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
+    public function administrator(): static
+    {
+        return $this->state(fn (): array => [
+            'workspace_id' => null,
+            'system_role' => SystemRole::ADMINISTRATOR,
+        ]);
+    }
+
+    public function forWorkspace(Workspace $workspace): static
+    {
+        return $this->state(fn (): array => [
+            'workspace_id' => $workspace->id,
+            'system_role' => SystemRole::EMPLOYEE,
+        ]);
+    }
+
     public function unverified(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (): array => [
             'email_verified_at' => null,
         ]);
     }

@@ -1,30 +1,32 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Models\Organization;
 use App\Models\Workspace;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Random\RandomException;
 
-/**
- * @extends Factory<Workspace>
- */
+/** @extends Factory<Workspace> */
 class WorkspaceFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     * @throws RandomException
-     */
+    /** @return array<string, mixed> */
     public function definition(): array
     {
         return [
-            'name' => $this->faker->domainName(),
-            'slug' => $this->faker->slug(),
-            'organization_id' => random_int(1, Organization::query()->count()),
-            'join_code' => $this->faker->unique()->uuid(),
+            'organization_id' => Organization::factory(),
+            'name' => fake()->companySuffix(),
+            'slug' => fake()->unique()->slug(),
+            'join_code_hash' => Workspace::hashJoinCode(Workspace::generateJoinCode()),
+            'active' => true,
         ];
+    }
+
+    public function withJoinCode(string $joinCode): static
+    {
+        return $this->state(fn (): array => [
+            'join_code_hash' => Workspace::hashJoinCode($joinCode),
+        ]);
     }
 }

@@ -1,36 +1,35 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Organization;
 
-use App\Enums\SubscriptionStatus;
+use App\Models\Organization;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateOrganizationRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return true;
+        $organization = $this->route('organization');
+
+        return $organization instanceof Organization
+            && $organization->owner_id === $this->user()?->id;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    /** @return array<string, ValidationRule|array<mixed>|string> */
     public function rules(): array
     {
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'slug' => ['sometimes', 'string', 'max:255'],
-            'tin' => ['sometimes', 'string', 'max:255'],
-            'plan_id' => ['sometimes', 'integer', Rule::exists('plans', 'id')],
-            'subscription_status' => ['sometimes', 'string', Rule::enum(SubscriptionStatus::class)],
-            'metadata' => ['sometimes', 'json'],
+            'slug' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('organizations', 'slug')->ignore($this->route('organization')),
+            ],
         ];
     }
 }

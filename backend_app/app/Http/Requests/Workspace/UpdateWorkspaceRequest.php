@@ -1,34 +1,44 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Workspace;
 
+use App\Models\Workspace;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateWorkspaceRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return true;
+        $workspace = $this->route('workspace');
+
+        return $workspace instanceof Workspace
+            && $workspace->organization()->where('owner_id', $this->user()?->id)->exists();
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    /** @return array<string, ValidationRule|array<mixed>|string> */
     public function rules(): array
     {
+        /** @var Workspace|null $workspace */
+        $workspace = $this->route('workspace');
+
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'slug' => ['sometimes', 'string', 'max:255'],
-            'description' => ['sometimes', 'string', 'max:1024'],
+            'slug' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('workspaces', 'slug')
+                    ->where(fn ($query) => $query->where('organization_id', $workspace?->organization_id))
+                    ->ignore($workspace),
+            ],
+            'description' => ['sometimes', 'nullable', 'string', 'max:1024'],
             'active' => ['sometimes', 'boolean'],
-            'organization_id' => ['sometimes', 'integer', Rule::exists('organizations', 'id')]
+            'organization_id' => ['prohibited'],
+            'join_code_hash' => ['prohibited'],
         ];
     }
 }

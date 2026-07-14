@@ -1,92 +1,79 @@
 <?php
 
-use App\Models\Organization;
-use App\Models\Plan;
+use App\Enums\SystemRole;
 use App\Models\User;
 use App\Models\Workspace;
 
-test('Guest can register', function () {
-    Plan::factory()->create();
-    Organization::factory()->create();
-    $workspace = Workspace::factory()->create();
+test('guest employee can register with a workspace join code', function () {
+    $joinCode = 'valid-workspace-join-code';
+    $workspace = Workspace::factory()->withJoinCode($joinCode)->create();
 
     $response = $this->postJson('/api/v1/register', [
-        'workspace_id' => $workspace->id,
-        'nickname' => 'test',
+        'first_name' => 'Test',
+        'last_name' => 'Employee',
+        'join_code' => $joinCode,
         'email' => 'test@mail.com',
         'password' => 'password',
-    ]);
+    ])->assertCreated();
 
-    $response->assertSuccessful();
+    $user = User::query()->where('email', 'test@mail.com')->firstOrFail();
 
-    $user = User::where('email', $response->json()['user']['email'])->first();
+    expect($user->workspace_id)->toBe($workspace->id)
+        ->and($user->system_role)->toBe(SystemRole::EMPLOYEE);
 
-    expect($user)->not()->toBeNull()
-        ->and($user)->toMatchArray([
-            'nickname' => 'test',
-            'first_name' => null,
-            'last_name' => null,
-            'system_role' => 'user',
-            'email' => 'test@mail.com',
-        ])
-        ->and($response->json())->toMatchArray([
-            'message' => 'User successfully registered.',
-            'user' => [
-                'id' => $user->id,
-                'workspace_id' => $user->workspace_id,
-                'nickname' => $user->nickname,
-                'email' => $user->email,
-                'updated_at' => $user->updated_at->toJSON(),
-                'created_at' => $user->updated_at->toJSON(),
-            ],
-        ]);
+    $response->assertJsonPath('data.email', 'test@mail.com')
+        ->assertJsonPath('data.systemRole', 'employee');
 });
 
-test('Registration Requires valid payload', function () {
-    Plan::factory()->create();
-    Organization::factory()->create();
-    $workspace = Workspace::factory()->create();
+test('registration rejects an invalid join code', function () {
+    $this->postJson('/api/v1/register', [
+        'join_code' => 'not-present',
+        'email' => 'test@mail.com',
+        'password' => 'password',
+    ])->assertUnprocessable()
+        ->assertJsonValidationErrors('join_code');
 
-    $response = $this->postJson('/api/v1/register', [
+    expect(User::query()->count())->toBe(0);
+});
+
+test('registration requires a valid payload', function () {
+    $this->postJson('/api/v1/register', [
         'workspace_id' => 444,
-        'nickname' => 'test sadfdsf',
+        'first_name' => 'x',
+        'join_code' => 'present-but-not-checked-yet',
         'email' => 'invalid_mail.com',
         'password' => 'passw',
-    ]);
-
-    $response->assertStatus(422)
+    ])->assertUnprocessable()
         ->assertJsonValidationErrors([
-            'workspace_id', 'nickname', 'email', 'password',
+            'workspace_id',
+            'first_name',
+            'email',
+            'password',
         ]);
-
-    expect(User::count())->toBe(0);
 });
 
-test('User cannot register with admin role', function () {
-    Plan::factory()->create();
-    Organization::factory()->create();
-    $workspace = Workspace::factory()->create();
+test('public registration cannot set protected tenant or role fields', function () {
+    $joinCode = 'protected-fields-test';
+    $workspace = Workspace::factory()->withJoinCode($joinCode)->create();
 
-    $response = $this->postJson('/api/v1/register', [
+    $this->postJson('/api/v1/register', [
         'workspace_id' => $workspace->id,
-        'nickname' => 'test',
         'system_role' => 'admin',
+        'join_code' => $joinCode,
         'email' => 'test@mail.com',
         'password' => 'password',
-    ]);
-
-    $response->assertStatus(422)
-        ->assertJsonValidationErrors('system_role');
+    ])->assertUnprocessable()
+        ->assertJsonValidationErrors(['workspace_id', 'system_role']);
 });
 
-test('Authenticated user cannot register again', function () {
-    Plan::factory()->create();
-    Organization::factory()->create();
-    $workspace = Workspace::factory()->create();
+test('authenticated user cannot register again', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->postJson('/api/v1/register', $user->toArray());
+    $this->actingAs($user)->postJson('/api/v1/register', [
+        'join_code' => 'irrelevant',
+        'email' => 'second@mail.com',
+        'password' => 'password',
+    ])->assertForbidden();
 
-    expect($response->getStatusCode())->not()->toBe([200, 201])
-        ->and(User::count())->toBe(1);
+    expect(User::query()->where('email', 'second@mail.com')->doesntExist())->toBeTrue();
 });

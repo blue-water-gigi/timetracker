@@ -1,33 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources\Organization;
 
+use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/** @mixin Organization */
 class OrganizationResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'tin' => $this->tin,
-            'currentPlan' => $this->whenNotNull($this->plan),
-            'subscriptionStatus' => $this->whenNotNull($this->subscription_status, 'free'),
-            'metadata' => $this->whenNotNull($this->metadata),
+            'archivedAt' => $this->archived_at?->toISOString(),
             'timestamps' => [
-                'createdAt' => $this->created_at->format('d-m-Y H:i:s'),
-                'updatedAt' => $this->updated_at->format('d-m-Y H:i:s'),
+                'createdAt' => $this->created_at?->toISOString(),
+                'updatedAt' => $this->updated_at?->toISOString(),
             ],
-            'workspaces_count' => $this->whenCounted('workspaces'),
-            'users_count' => $this->whenCounted('users'),
+            'workspacesCount' => $this->whenCounted('workspaces'),
+            'usersCount' => $this->whenCounted('users'),
         ];
     }
 }

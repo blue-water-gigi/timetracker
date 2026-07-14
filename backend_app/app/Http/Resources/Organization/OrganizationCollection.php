@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources\Organization;
 
 use Illuminate\Http\Request;
@@ -15,7 +17,7 @@ class OrganizationCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return [
-            'data' => $this->collection
+            'data' => $this->collection,
         ];
     }
 
@@ -28,8 +30,8 @@ class OrganizationCollection extends ResourceCollection
                     'workspaces',
                     'workspaces_count',
                     'users_count',
-                ]
-            ]
+                ],
+            ],
         ];
     }
 }

@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources\Workspace;
 
-use App\Enums\SubscriptionStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
@@ -38,7 +39,7 @@ class WorkspaceCollection extends ResourceCollection
                 'includes' => [
                     'organization',
                     'users_count',
-                ]
+                ],
             ],
         ];
     }

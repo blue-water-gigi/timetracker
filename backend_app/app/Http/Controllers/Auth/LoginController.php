@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginUserRequest;
+use App\Http\Resources\User\UserResource;
 use Auth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,15 +22,18 @@ class LoginController extends Controller
 
         if (!Auth::attempt($validated)) {
             return response()->json([
-                'message' => 'Theres no user with such credentials.',
+                'data' => [
+                    'error' => 'Theres no user with such credentials.'
+                ],
             ], 422);
         }
 
         $request->session()->regenerate();
 
         return response()->json([
-            'message' => 'User logged in successfully.',
-            'user' => $request->user(),
+            'data' => [
+                'user' => Auth::user()
+            ]
         ], 201);
     }
 
@@ -43,8 +47,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return response()->json([
-            'message' => 'User logged out successfully.',
-        ], 201);
+        return response()->json(status: 204);
     }
 }
