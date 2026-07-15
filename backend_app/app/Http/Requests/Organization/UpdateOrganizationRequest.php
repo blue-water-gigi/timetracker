@@ -28,7 +28,8 @@ class UpdateOrganizationRequest extends FormRequest
                 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('organizations', 'slug')->ignore($this->route('organization')),
+                Rule::unique('organizations', 'slug')
+                    ->ignore($this->route('organization')),
             ],
         ];
     }

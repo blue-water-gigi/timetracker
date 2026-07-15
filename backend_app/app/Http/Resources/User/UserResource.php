@@ -21,8 +21,8 @@ class UserResource extends JsonResource
             'systemRole' => $this->system_role,
             'email' => $this->email,
             'timestamps' => [
-                'createdAt' => $this->created_at->format('Y-m-d H:i:s'),
-                'updatedAt' => $this->updated_at->format('Y-m-d H:i:s'),
+                'createdAt' => $this->created_at?->toIsoString(),
+                'updatedAt' => $this->updated_at?->toIsoString(),
             ],
         ];
     }

@@ -23,6 +23,7 @@ class OrganizationController extends Controller
             $request->user()
                 ->ownedOrganizations()
                 ->withCount(['workspaces', 'users'])
+                ->with('owner')
                 ->paginate(20)
                 ->withQueryString()
         );
@@ -32,6 +33,7 @@ class OrganizationController extends Controller
     {
         $organization = $request->user()
             ->ownedOrganizations()
+            ->with('owner')
             ->create($request->validated());
 
         return new OrganizationResource($organization);
@@ -39,6 +41,9 @@ class OrganizationController extends Controller
 
     public function show(Organization $organization): JsonResource
     {
+        //todo add policy check
+        $organization->load('owner')->loadCount(['workspaces', 'users']);
+
         return new OrganizationResource($organization);
     }
 
@@ -47,7 +52,7 @@ class OrganizationController extends Controller
     {
         $organization->updateOrFail($request->validated());
 
-        return new OrganizationResource($organization);
+        return new OrganizationResource($organization->with('owner'));
     }
 
     /** @throws Throwable */
