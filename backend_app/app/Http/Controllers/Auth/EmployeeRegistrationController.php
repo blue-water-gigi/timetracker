@@ -10,7 +10,6 @@ use App\Http\Resources\User\UserResource;
 use App\Models\User;
 use App\Models\Workspace;
 use Auth;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +39,7 @@ class EmployeeRegistrationController extends Controller
         /**
          * @var User $user
          */
-        $user = DB::transaction(fn() => $workspace->users()->create(
+        $user = DB::transaction(fn () => $workspace->users()->create(
             Arr::except($validated, ['join_code'])
         ));
 

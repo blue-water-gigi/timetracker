@@ -103,7 +103,7 @@ test('timesheet rejects non-members and out-of-period entries', function () {
     expect(fn () => Timesheet::createForProject($project, $outsider, [
         'period_start' => '2026-07-13',
         'period_end' => '2026-07-19',
-    ]))->toThrow(\DomainException::class);
+    ]))->toThrow(DomainException::class);
 
     $project->users()->attach($member->id, [
         'project_role' => ProjectRole::PARTICIPANT,
@@ -117,7 +117,7 @@ test('timesheet rejects non-members and out-of-period entries', function () {
     expect(fn () => $timesheet->addEntry([
         'work_date' => '2026-07-20',
         'hours' => 8,
-    ]))->toThrow(\DomainException::class);
+    ]))->toThrow(DomainException::class);
 });
 
 test('restrict foreign keys preserve tenant aggregates', function () {
