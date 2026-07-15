@@ -18,45 +18,48 @@ use Throwable;
 
 class WorkspaceController extends Controller
 {
-    public function index(): JsonResource
+    public function index(Organization $organization): JsonResource
     {
         return new WorkspaceCollection(
-            Workspace::query()
+            $organization->workspaces()
                 ->with('organization')
                 ->withCount('users')
-                ->paginate(20)
+                ->paginate(15)
                 ->withQueryString()
         );
     }
 
-    public function store(StoreWorkspaceRequest $request): JsonResource
+    public function store(StoreWorkspaceRequest $request, Organization $organization): JsonResource
     {
         $validated = $request->validated();
-        /** @var Organization $organization */
-        $organization = $request->user()
-            ->ownedOrganizations()
-            ->findOrFail($validated['organization_id']);
+
         $joinCode = Workspace::generateJoinCode();
 
-        $workspace = $organization->workspaces()->make(
-            Arr::except($validated, ['organization_id'])
-        );
+        $workspace = $organization->workspaces()->make($validated);
+
         $workspace->forceFill([
             'join_code_hash' => Workspace::hashJoinCode($joinCode),
         ])->save();
 
-        return (new WorkspaceResource($workspace))->additional([
+        return new WorkspaceResource($workspace->load('organization'))->additional([
             'meta' => ['joinCode' => $joinCode],
         ]);
     }
 
-    public function show(Workspace $workspace): JsonResource
+    public function show(Organization $organization, Workspace $workspace): JsonResource
     {
-        return new WorkspaceResource($workspace);
+        //todo add policy
+        return new WorkspaceResource(
+            $workspace->load('organization')->loadCount('users')
+        );
     }
 
     /** @throws Throwable */
-    public function update(UpdateWorkspaceRequest $request, Workspace $workspace): JsonResource
+    public function update(
+        UpdateWorkspaceRequest $request,
+        Organization           $organization,
+        Workspace              $workspace
+    ): JsonResource
     {
         $workspace->updateOrFail($request->validated());
 
@@ -64,7 +67,7 @@ class WorkspaceController extends Controller
     }
 
     /** @throws Throwable */
-    public function destroy(Workspace $workspace): JsonResponse
+    public function destroy(Organization $organization, Workspace $workspace): JsonResponse
     {
         $workspace->deleteOrFail();
 

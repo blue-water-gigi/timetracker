@@ -24,7 +24,7 @@ class OrganizationController extends Controller
                 ->ownedOrganizations()
                 ->withCount(['workspaces', 'users'])
                 ->with('owner')
-                ->paginate(20)
+                ->paginate(10)
                 ->withQueryString()
         );
     }

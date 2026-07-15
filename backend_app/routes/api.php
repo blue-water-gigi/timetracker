@@ -10,7 +10,7 @@ use App\Http\Controllers\Workspace\WorkspaceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('health', fn (Request $request) => response()->json([
+Route::get('health', fn(Request $request) => response()->json([
     'status' => 'ok',
     'app' => config('app.version'),
     'database' => 'ok',
@@ -19,11 +19,12 @@ Route::get('health', fn (Request $request) => response()->json([
     'storage' => 'ok',
 ], 201));
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum')->group(callback: function () {
     Route::delete('logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::apiResource('organizations', OrganizationController::class);
-    Route::apiResource('workspaces', WorkspaceController::class);
+    Route::apiResource('organizations/{organization}/workspaces', WorkspaceController::class)
+        ->scoped();
 });
 
 Route::middleware('guest.api')->group(function () {

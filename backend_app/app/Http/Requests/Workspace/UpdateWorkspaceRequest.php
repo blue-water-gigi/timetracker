@@ -32,10 +32,10 @@ class UpdateWorkspaceRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('workspaces', 'slug')
-                    ->where(fn ($query) => $query->where('organization_id', $workspace?->organization_id))
+                    ->where(fn($query) => $query->where('organization_id', $workspace?->organization_id))
                     ->ignore($workspace),
             ],
-            'description' => ['sometimes', 'nullable', 'string', 'max:1024'],
+            'description' => ['sometimes', 'nullable', 'string', 'max:500'],
             'active' => ['sometimes', 'boolean'],
             'organization_id' => ['prohibited'],
             'join_code_hash' => ['prohibited'],
