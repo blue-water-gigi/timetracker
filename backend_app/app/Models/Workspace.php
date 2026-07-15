@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Database\Factories\WorkspaceFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -50,7 +51,8 @@ class Workspace extends Model
         return hash('sha256', $joinCode);
     }
 
-    public function scopeWhereJoinCode(Builder $query, string $joinCode): Builder
+    #[Scope]
+    protected function whereJoinCode(Builder $query, string $joinCode): Builder
     {
         return $query->where('join_code_hash', self::hashJoinCode($joinCode));
     }

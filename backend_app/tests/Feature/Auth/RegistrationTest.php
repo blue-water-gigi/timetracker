@@ -8,7 +8,7 @@ test('guest employee can register with a workspace join code', function () {
     $joinCode = 'valid-workspace-join-code';
     $workspace = Workspace::factory()->withJoinCode($joinCode)->create();
 
-    $response = $this->postJson('/api/v1/register', [
+    $response = $this->postJson(route('register.employee'), [
         'first_name' => 'Test',
         'last_name' => 'Employee',
         'join_code' => $joinCode,
@@ -26,7 +26,9 @@ test('guest employee can register with a workspace join code', function () {
 });
 
 test('registration rejects an invalid join code', function () {
-    $this->postJson('/api/v1/register', [
+    $this->postJson(route('register.employee'), [
+        'first_name' => 'Test',
+        'last_name' => 'Employee',
         'join_code' => 'not-present',
         'email' => 'test@mail.com',
         'password' => 'password',
@@ -37,7 +39,7 @@ test('registration rejects an invalid join code', function () {
 });
 
 test('registration requires a valid payload', function () {
-    $this->postJson('/api/v1/register', [
+    $this->postJson(route('register.employee'), [
         'workspace_id' => 444,
         'first_name' => 'x',
         'join_code' => 'present-but-not-checked-yet',
@@ -56,7 +58,7 @@ test('public registration cannot set protected tenant or role fields', function 
     $joinCode = 'protected-fields-test';
     $workspace = Workspace::factory()->withJoinCode($joinCode)->create();
 
-    $this->postJson('/api/v1/register', [
+    $this->postJson(route('register.employee'), [
         'workspace_id' => $workspace->id,
         'system_role' => 'admin',
         'join_code' => $joinCode,
@@ -69,7 +71,7 @@ test('public registration cannot set protected tenant or role fields', function 
 test('authenticated user cannot register again', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)->postJson('/api/v1/register', [
+    $this->actingAs($user)->postJson(route('register.employee'), [
         'join_code' => 'irrelevant',
         'email' => 'second@mail.com',
         'password' => 'password',

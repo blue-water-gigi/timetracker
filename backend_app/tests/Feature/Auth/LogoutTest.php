@@ -7,9 +7,7 @@ test('authenticated user can logout', function () {
 
     $this->actingAs($user, 'web')->deleteJson('/api/v1/logout')
         ->assertSuccessful()
-        ->assertJson([
-            'message' => 'User logged out successfully.',
-        ]);
+        ->assertNoContent();
 
     $this->assertGuest('web');
 });

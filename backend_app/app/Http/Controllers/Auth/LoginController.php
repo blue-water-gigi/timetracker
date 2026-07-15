@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginUserRequest;
-use App\Http\Resources\User\UserResource;
 use Auth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,10 +19,10 @@ class LoginController extends Controller
     {
         $validated = $request->validated();
 
-        if (!Auth::attempt($validated)) {
+        if (! Auth::attempt($validated)) {
             return response()->json([
                 'data' => [
-                    'error' => 'Theres no user with such credentials.'
+                    'error' => 'Theres no user with such credentials.',
                 ],
             ], 422);
         }
@@ -32,8 +31,8 @@ class LoginController extends Controller
 
         return response()->json([
             'data' => [
-                'user' => Auth::user()
-            ]
+                'user' => Auth::user(),
+            ],
         ], 201);
     }
 
