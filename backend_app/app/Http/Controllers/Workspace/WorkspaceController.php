@@ -14,7 +14,6 @@ use App\Models\Organization;
 use App\Models\Workspace;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Arr;
 use Throwable;
 
 class WorkspaceController extends Controller
@@ -33,7 +32,6 @@ class WorkspaceController extends Controller
     public function store(StoreWorkspaceRequest $request, Organization $organization): JsonResource
     {
 
-
         $validated = $request->validated();
 
         $joinCode = Workspace::generateJoinCode();
@@ -51,7 +49,7 @@ class WorkspaceController extends Controller
 
     public function show(Organization $organization, Workspace $workspace): JsonResource
     {
-        //todo add policy
+        // todo add policy
         return new WorkspaceResource(
             $workspace->load('organization')->loadCount('users')
         );
@@ -60,10 +58,9 @@ class WorkspaceController extends Controller
     /** @throws Throwable */
     public function update(
         UpdateWorkspaceRequest $request,
-        Organization           $organization,
-        Workspace              $workspace
-    ): JsonResource
-    {
+        Organization $organization,
+        Workspace $workspace
+    ): JsonResource {
         $workspace->updateOrFail($request->validated());
 
         return new WorkspaceResource($workspace);
@@ -79,10 +76,6 @@ class WorkspaceController extends Controller
 
     /**
      * Refresh the join code
-     *
-     * @param Organization $organization
-     * @param Workspace $workspace
-     * @return JsonResource
      */
     public function rotateJoinCode(RotateJoinCodeRequest $request, Organization $organization, Workspace $workspace): JsonResource
     {
@@ -92,7 +85,7 @@ class WorkspaceController extends Controller
             ->additional([
                 'meta' => [
                     'joinCode' => $joinCode,
-                ]
+                ],
             ]);
     }
 }

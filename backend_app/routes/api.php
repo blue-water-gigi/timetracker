@@ -6,11 +6,12 @@ use App\Http\Controllers\Auth\AdminRegistrationController;
 use App\Http\Controllers\Auth\EmployeeRegistrationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Organization\OrganizationController;
+use App\Http\Controllers\Project\ProjectController;
 use App\Http\Controllers\Workspace\WorkspaceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('health', fn(Request $request) => response()->json([
+Route::get('health', fn (Request $request) => response()->json([
     'status' => 'ok',
     'app' => config('app.version'),
     'database' => 'ok',
@@ -27,6 +28,9 @@ Route::middleware('auth:sanctum')->group(callback: function () {
         ->scoped();
     Route::post('organizations/{organization}/workspaces/{workspace}/rotate-join-code', [WorkspaceController::class, 'rotateJoinCode'])
         ->scopeBindings();
+
+    Route::apiResource('workspaces/{workspace}/projects', ProjectController::class)
+        ->scoped();
 });
 
 Route::middleware('guest.api')->group(function () {
