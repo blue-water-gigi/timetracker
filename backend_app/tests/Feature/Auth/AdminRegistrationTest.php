@@ -14,7 +14,7 @@ test('guest admin can register without join-code', function () {
     $user = User::query()->where('email', 'test@mail.com')->firstOrFail();
 
     expect($user->exists())->toBeTrue()
-        ->and($user->system_role)->toBe(App\Enums\SystemRole::ADMINISTRATOR);
+        ->and($user->system_role)->toBe(SystemRole::ADMINISTRATOR);
     $response->assertJsonPath('data.email', $user->email)
         ->assertJsonPath('data.systemRole', 'admin');
 });

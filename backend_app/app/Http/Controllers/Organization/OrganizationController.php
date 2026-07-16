@@ -41,7 +41,7 @@ class OrganizationController extends Controller
 
     public function show(Organization $organization): JsonResource
     {
-        //todo add policy check
+        // todo add policy check
         $organization->load('owner')->loadCount(['workspaces', 'users']);
 
         return new OrganizationResource($organization);

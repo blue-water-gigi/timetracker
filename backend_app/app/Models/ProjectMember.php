@@ -25,6 +25,7 @@ class ProjectMember extends Pivot
     protected $table = 'project_members';
 
     protected $fillable = [
+        'user_id',
         'project_role',
         'active',
     ];

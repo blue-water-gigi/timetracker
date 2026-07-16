@@ -16,7 +16,9 @@ class UpdateWorkspaceRequest extends FormRequest
         $workspace = $this->route('workspace');
 
         return $workspace instanceof Workspace
-            && $workspace->organization()->where('owner_id', $this->user()?->id)->exists();
+            && $workspace->organization()
+                ->where('owner_id', $this->user()?->id)
+                ->exists();
     }
 
     /** @return array<string, ValidationRule|array<mixed>|string> */
@@ -32,7 +34,7 @@ class UpdateWorkspaceRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('workspaces', 'slug')
-                    ->where(fn($query) => $query->where('organization_id', $workspace?->organization_id))
+                    ->where(fn ($query) => $query->where('organization_id', $workspace?->organization_id))
                     ->ignore($workspace),
             ],
             'description' => ['sometimes', 'nullable', 'string', 'max:500'],

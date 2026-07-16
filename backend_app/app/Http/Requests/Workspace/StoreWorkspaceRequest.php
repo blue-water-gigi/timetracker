@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests\Workspace;
 
 use App\Models\Organization;
-use App\Models\Workspace;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -34,7 +33,7 @@ class StoreWorkspaceRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('workspaces', 'slug')->where(
-                    fn($query) => $query->where('organization_id', $organization->getKey())
+                    fn ($query) => $query->where('organization_id', $organization->getKey())
                 ),
             ],
             'description' => ['nullable', 'string', 'max:1024'],
