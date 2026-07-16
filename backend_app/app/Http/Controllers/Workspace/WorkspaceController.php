@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Workspace;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Workspace\RotateJoinCodeRequest;
 use App\Http\Requests\Workspace\StoreWorkspaceRequest;
 use App\Http\Requests\Workspace\UpdateWorkspaceRequest;
 use App\Http\Resources\Workspace\WorkspaceCollection;
@@ -31,6 +32,8 @@ class WorkspaceController extends Controller
 
     public function store(StoreWorkspaceRequest $request, Organization $organization): JsonResource
     {
+
+
         $validated = $request->validated();
 
         $joinCode = Workspace::generateJoinCode();
@@ -72,5 +75,24 @@ class WorkspaceController extends Controller
         $workspace->deleteOrFail();
 
         return response()->json(status: 204);
+    }
+
+    /**
+     * Refresh the join code
+     *
+     * @param Organization $organization
+     * @param Workspace $workspace
+     * @return JsonResource
+     */
+    public function rotateJoinCode(RotateJoinCodeRequest $request, Organization $organization, Workspace $workspace): JsonResource
+    {
+        $joinCode = $workspace->rotateJoinCode();
+
+        return new WorkspaceResource($workspace->load('organization'))
+            ->additional([
+                'meta' => [
+                    'joinCode' => $joinCode,
+                ]
+            ]);
     }
 }

@@ -25,6 +25,8 @@ Route::middleware('auth:sanctum')->group(callback: function () {
     Route::apiResource('organizations', OrganizationController::class);
     Route::apiResource('organizations/{organization}/workspaces', WorkspaceController::class)
         ->scoped();
+    Route::post('organizations/{organization}/workspaces/{workspace}/rotate-join-code', [WorkspaceController::class, 'rotateJoinCode'])
+        ->scopeBindings();
 });
 
 Route::middleware('guest.api')->group(function () {
