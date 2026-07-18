@@ -16,9 +16,7 @@ class StoreProjectRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $workspace = $this->route('workspace');
-
-        return $workspace instanceof Workspace;
+        return true;
     }
 
     /**

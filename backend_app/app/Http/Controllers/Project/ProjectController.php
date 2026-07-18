@@ -11,7 +11,10 @@ use App\Http\Resources\Project\ProjectCollection;
 use App\Http\Resources\Project\ProjectResource;
 use App\Models\Project;
 use App\Models\Workspace;
+use Auth;
+use Gate;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Throwable;
 
@@ -22,11 +25,26 @@ class ProjectController extends Controller
      */
     public function index(Workspace $workspace): JsonResource
     {
+        Gate::authorize('viewAny', [Project::class, $workspace]);
+
         return new ProjectCollection(
             $workspace->projects()
                 ->with(['memberships', 'workspace', 'createdBy', 'updatedBy'])
                 ->withCount('memberships')
                 ->paginate(15)
+                ->withQueryString()
+        );
+    }
+
+    public function showMyProjects(Workspace $workspace): JsonResource
+    {
+        Gate::authorize('viewSelfProjects', [Project::class, $workspace]);
+
+        return new ProjectCollection(
+            Auth::user()->projects()
+                ->with(['workspace', 'createdBy', 'updatedBy'])
+                ->withCount('memberships')
+                ->paginate(10)
                 ->withQueryString()
         );
     }
@@ -38,6 +56,8 @@ class ProjectController extends Controller
      */
     public function store(StoreProjectRequest $request, Workspace $workspace): JsonResource
     {
+        Gate::authorize('create', [Project::class, $workspace]);
+
         $project = $workspace->projects()->make($request->validated());
 
         $project->forceFill([
@@ -53,6 +73,8 @@ class ProjectController extends Controller
      */
     public function show(Workspace $workspace, Project $project): JsonResource
     {
+        Gate::authorize('view', $project);
+
         return new ProjectResource($project->load(['memberships', 'workspace', 'createdBy', 'updatedBy'])
             ->loadCount('memberships')
         );
@@ -65,6 +87,8 @@ class ProjectController extends Controller
      */
     public function update(UpdateProjectRequest $request, Workspace $workspace, Project $project): JsonResource
     {
+        Gate::authorize('update', $project);
+
         $project->updateOrFail($request->validated());
 
         return new ProjectResource($project->load('workspace'));
@@ -77,6 +101,8 @@ class ProjectController extends Controller
      */
     public function destroy(Workspace $workspace, Project $project): JsonResponse
     {
+        Gate::authorize('delete', $project);
+
         $project->deleteOrFail();
 
         return response()->json(status: 204);

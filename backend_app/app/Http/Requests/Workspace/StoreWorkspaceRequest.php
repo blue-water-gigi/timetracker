@@ -13,12 +13,7 @@ class StoreWorkspaceRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $organization = $this->route('organization');
-
-        return $organization instanceof Organization
-            && $this->user()?->ownedOrganizations()
-                ->whereKey($organization->getKey())
-                ->exists();
+        return true;
     }
 
     /** @return array<string, ValidationRule|array<mixed>|string> */
@@ -33,7 +28,7 @@ class StoreWorkspaceRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('workspaces', 'slug')->where(
-                    fn ($query) => $query->where('organization_id', $organization->getKey())
+                    fn($query) => $query->where('organization_id', $organization->getKey())
                 ),
             ],
             'description' => ['nullable', 'string', 'max:1024'],

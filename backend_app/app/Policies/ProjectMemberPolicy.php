@@ -1,25 +1,27 @@
 <?php
 
-namespace App\Policies\Organization;
+namespace App\Policies;
 
-use App\Models\Organization;
+use App\Models\Project;
+use App\Models\ProjectMember;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
+use App\Models\Workspace;
 
-class OrganizationPolicy
+class ProjectMemberPolicy
 {
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(User $user, Workspace $workspace, Project $project): bool
     {
+        //user can see all project members if
         return false;
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Organization $organization): bool
+    public function view(User $user, ProjectMember $projectMember): bool
     {
         return false;
     }
@@ -35,7 +37,7 @@ class OrganizationPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Organization $organization): bool
+    public function update(User $user, ProjectMember $projectMember): bool
     {
         return false;
     }
@@ -43,7 +45,7 @@ class OrganizationPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Organization $organization): bool
+    public function delete(User $user, ProjectMember $projectMember): bool
     {
         return false;
     }
@@ -51,7 +53,7 @@ class OrganizationPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Organization $organization): bool
+    public function restore(User $user, ProjectMember $projectMember): bool
     {
         return false;
     }
@@ -59,7 +61,7 @@ class OrganizationPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Organization $organization): bool
+    public function forceDelete(User $user, ProjectMember $projectMember): bool
     {
         return false;
     }

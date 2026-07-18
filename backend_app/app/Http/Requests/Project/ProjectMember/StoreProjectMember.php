@@ -15,9 +15,7 @@ class StoreProjectMember extends FormRequest
      */
     public function authorize(): bool
     {
-        $project = $this->route('project');
-
-        return $project instanceof Project;
+        return true;
     }
 
     /**

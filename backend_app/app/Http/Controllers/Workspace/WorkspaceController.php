@@ -12,6 +12,7 @@ use App\Http\Resources\Workspace\WorkspaceCollection;
 use App\Http\Resources\Workspace\WorkspaceResource;
 use App\Models\Organization;
 use App\Models\Workspace;
+use Gate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Throwable;
@@ -20,6 +21,8 @@ class WorkspaceController extends Controller
 {
     public function index(Organization $organization): JsonResource
     {
+        Gate::authorize('viewAny', [Workspace::class, $organization]);
+
         return new WorkspaceCollection(
             $organization->workspaces()
                 ->with('organization')
@@ -31,6 +34,7 @@ class WorkspaceController extends Controller
 
     public function store(StoreWorkspaceRequest $request, Organization $organization): JsonResource
     {
+        Gate::authorize('create', [Workspace::class, $organization]);
 
         $validated = $request->validated();
 
@@ -49,7 +53,8 @@ class WorkspaceController extends Controller
 
     public function show(Organization $organization, Workspace $workspace): JsonResource
     {
-        // todo add policy
+        Gate::authorize('view', $workspace);
+
         return new WorkspaceResource(
             $workspace->load('organization')->loadCount('users')
         );
@@ -58,9 +63,12 @@ class WorkspaceController extends Controller
     /** @throws Throwable */
     public function update(
         UpdateWorkspaceRequest $request,
-        Organization $organization,
-        Workspace $workspace
-    ): JsonResource {
+        Organization           $organization,
+        Workspace              $workspace
+    ): JsonResource
+    {
+        Gate::authorize('update', $workspace);
+
         $workspace->updateOrFail($request->validated());
 
         return new WorkspaceResource($workspace);
@@ -69,6 +77,8 @@ class WorkspaceController extends Controller
     /** @throws Throwable */
     public function destroy(Organization $organization, Workspace $workspace): JsonResponse
     {
+        Gate::authorize('delete', $workspace);
+
         $workspace->deleteOrFail();
 
         return response()->json(status: 204);
@@ -79,6 +89,8 @@ class WorkspaceController extends Controller
      */
     public function rotateJoinCode(RotateJoinCodeRequest $request, Organization $organization, Workspace $workspace): JsonResource
     {
+        Gate::authorize('rotateJoinCode', $workspace);
+
         $joinCode = $workspace->rotateJoinCode();
 
         return new WorkspaceResource($workspace->load('organization'))

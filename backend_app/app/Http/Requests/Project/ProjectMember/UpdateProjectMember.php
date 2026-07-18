@@ -15,9 +15,7 @@ class UpdateProjectMember extends FormRequest
      */
     public function authorize(): bool
     {
-        $member = $this->route('membership');
-
-        return $member instanceof ProjectMember;
+        return true;
     }
 
     /**

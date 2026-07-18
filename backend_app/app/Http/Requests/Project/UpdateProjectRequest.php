@@ -16,12 +16,7 @@ class UpdateProjectRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $workspace = $this->route('workspace');
-
-        return $workspace instanceof Workspace
-            && $workspace->projects()
-                ->where('workspace_id', $workspace->id)
-                ->exists();
+        return true;
     }
 
     /**

@@ -80,4 +80,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Timesheet::class, 'reviewed_by_user_id');
     }
+
+    public function isAdmin(): bool
+    {
+        return $this->system_role === SystemRole::ADMINISTRATOR;
+    }
 }

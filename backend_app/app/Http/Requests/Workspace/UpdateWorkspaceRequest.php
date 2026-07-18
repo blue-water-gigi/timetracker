@@ -13,12 +13,7 @@ class UpdateWorkspaceRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $workspace = $this->route('workspace');
-
-        return $workspace instanceof Workspace
-            && $workspace->organization()
-                ->where('owner_id', $this->user()?->id)
-                ->exists();
+        return true;
     }
 
     /** @return array<string, ValidationRule|array<mixed>|string> */

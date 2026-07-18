@@ -13,10 +13,7 @@ class UpdateOrganizationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $organization = $this->route('organization');
-
-        return $organization instanceof Organization
-            && $organization->owner_id === $this->user()?->id;
+        return true;
     }
 
     /** @return array<string, ValidationRule|array<mixed>|string> */
