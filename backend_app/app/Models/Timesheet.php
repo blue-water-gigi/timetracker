@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * @property TimesheetStatus $status
@@ -48,7 +49,8 @@ class Timesheet extends Model
     }
 
     /**
-     * @param  array{period_start: string, period_end: string}  $attributes
+     * @param array{period_start: string, period_end: string} $attributes
+     * @throws Throwable
      */
     public static function createForProject(Project $project, User $user, array $attributes): self
     {
@@ -64,7 +66,7 @@ class Timesheet extends Model
             ->where('active', true)
             ->exists();
 
-        if (! $isActiveMember) {
+        if (!$isActiveMember) {
             throw new DomainException('The user must be an active project member.');
         }
 
@@ -75,24 +77,24 @@ class Timesheet extends Model
                 'project_id' => $project->id,
                 'user_id' => $user->id,
             ]);
-            $timesheet->save();
+            $timesheet->saveOrFail();
 
             return $timesheet;
         });
     }
 
     /**
-     * @param  array{work_date: string, description?: string|null, hours: numeric-string|int|float, is_overtime?: bool}  $attributes
+     * @param array{work_date: string, description?: string|null, hours: numeric-string|int|float, is_overtime?: bool} $attributes
      */
     public function addEntry(array $attributes): TimeEntry
     {
         $workDate = CarbonImmutable::parse($attributes['work_date']);
 
-        if (! $workDate->betweenIncluded($this->period_start, $this->period_end)) {
+        if (!$workDate->betweenIncluded($this->period_start, $this->period_end)) {
             throw new DomainException('The work date must be within the timesheet period.');
         }
 
-        if (! in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
+        if (!in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
             throw new DomainException('Entries may only be changed on draft or rejected timesheets.');
         }
 

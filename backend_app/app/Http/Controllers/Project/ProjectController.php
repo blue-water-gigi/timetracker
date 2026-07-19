@@ -12,6 +12,7 @@ use App\Http\Resources\Project\ProjectResource;
 use App\Models\Project;
 use App\Models\Workspace;
 use Auth;
+use DB;
 use Gate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -58,12 +59,16 @@ class ProjectController extends Controller
     {
         Gate::authorize('create', [Project::class, $workspace]);
 
-        $project = $workspace->projects()->make($request->validated());
+        $project = DB::transaction(function () use ($request, $workspace) {
+            $project = $workspace->projects()->make($request->validated());
 
-        $project->forceFill([
-            'created_by_user_id' => $request->user()?->id,
-            'updated_by_user_id' => $request->user()?->id,
-        ])->saveOrFail();
+            $project->forceFill([
+                'created_by_user_id' => $request->user()?->id,
+                'updated_by_user_id' => $request->user()?->id,
+            ])->saveOrFail();
+
+            return $project;
+        });
 
         return new ProjectResource($project->load('workspace'));
     }

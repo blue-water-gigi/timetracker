@@ -12,6 +12,7 @@ use App\Http\Resources\Workspace\WorkspaceCollection;
 use App\Http\Resources\Workspace\WorkspaceResource;
 use App\Models\Organization;
 use App\Models\Workspace;
+use DB;
 use Gate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -32,6 +33,9 @@ class WorkspaceController extends Controller
         );
     }
 
+    /**
+     * @throws Throwable
+     */
     public function store(StoreWorkspaceRequest $request, Organization $organization): JsonResource
     {
         Gate::authorize('create', [Workspace::class, $organization]);
@@ -40,11 +44,15 @@ class WorkspaceController extends Controller
 
         $joinCode = Workspace::generateJoinCode();
 
-        $workspace = $organization->workspaces()->make($validated);
+        $workspace = DB::transaction(function () use ($validated, $organization, $joinCode) {
+            $workspace = $organization->workspaces()->make($validated);
 
-        $workspace->forceFill([
-            'join_code_hash' => Workspace::hashJoinCode($joinCode),
-        ])->save();
+            $workspace->forceFill([
+                'join_code_hash' => Workspace::hashJoinCode($joinCode),
+            ])->saveOrFail();
+
+            return $workspace;
+        });
 
         return new WorkspaceResource($workspace->load('organization'))->additional([
             'meta' => ['joinCode' => $joinCode],
