@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Organization\OrganizationController;
 use App\Http\Controllers\Project\ProjectController;
 use App\Http\Controllers\Project\ProjectMember\ProjectMemberController;
+use App\Http\Controllers\Timesheet\TimesheetController;
 use App\Http\Controllers\Workspace\WorkspaceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('workspaces/{workspace}/projects/{project}/members', ProjectMemberController::class)
         ->parameters(['members' => 'membership'])
+        ->scoped();
+
+    Route::apiResource('workspaces/{workspace}/projects/{project}/timesheets', TimesheetController::class)
         ->scoped();
 });
 
