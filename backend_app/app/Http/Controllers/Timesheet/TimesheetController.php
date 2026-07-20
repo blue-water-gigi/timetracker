@@ -24,7 +24,7 @@ class TimesheetController extends Controller
      */
     public function index(Workspace $workspace, Project $project): JsonResource
     {
-        Gate::authorize('viewAny', [Timesheet::class, $project]);
+        Gate::authorize('viewAny', Timesheet::class);
 
         return new TimesheetCollection(
             $project->timesheets()
@@ -40,6 +40,8 @@ class TimesheetController extends Controller
      */
     public function store(StoreTimesheetRequest $request, Workspace $workspace, Project $project): JsonResource
     {
+        GATE::authorize('create', Timesheet::class);
+
         $timesheet = DB::transaction(function () use ($request, $workspace, $project) {
             $timesheet = Timesheet::query()->make($request->validated());
 
@@ -61,8 +63,10 @@ class TimesheetController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Timesheet $timesheet): JsonResource
+    public function show(Workspace $workspace, Project $project, Timesheet $timesheet): JsonResource
     {
+        Gate::authorize('view', $timesheet);
+
         return new TimesheetResource($timesheet->load(['project', 'user', 'reviewedBy', 'entries']));
     }
 
@@ -70,8 +74,14 @@ class TimesheetController extends Controller
      * Update the specified resource in storage.
      * @throws Throwable
      */
-    public function update(UpdateTimesheetRequest $request, Timesheet $timesheet): JsonResource
+    public function update(
+        UpdateTimesheetRequest $request,
+        Workspace              $workspace,
+        Project                $project,
+        Timesheet              $timesheet): JsonResource
     {
+        Gate::authorize('update', $timesheet);
+
         $timesheet->updateOrFail($request->validated());
 
         return new TimesheetResource($timesheet->load(['project', 'user', 'entries']));
@@ -81,8 +91,10 @@ class TimesheetController extends Controller
      * Remove the specified resource from storage.
      * @throws Throwable
      */
-    public function destroy(Timesheet $timesheet): JsonResponse
+    public function destroy(Workspace $workspace, Project $project, Timesheet $timesheet): JsonResponse
     {
+        Gate::authorize('delete', $timesheet);
+
         $timesheet->deleteOrFail();
 
         return response()->json(status: 204);
