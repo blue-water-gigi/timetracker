@@ -42,18 +42,7 @@ class TimesheetController extends Controller
     {
         GATE::authorize('create', Timesheet::class);
 
-        $timesheet = DB::transaction(function () use ($request, $workspace, $project) {
-            $timesheet = Timesheet::query()->make($request->validated());
-
-            $timesheet->forceFill([
-                'workspace_id' => $workspace->id,
-                'project_id' => $project->id,
-                'user_id' => $request->user()->id,
-                'reviewed_by_user_id' => null,
-            ])->saveOrFail();
-
-            return $timesheet;
-        });
+        $timesheet = Timesheet::createForProject($project, $request->user(), $request->validated());
 
         return new TimesheetResource(
             $timesheet->load(['project', 'user', 'entries'])

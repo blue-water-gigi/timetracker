@@ -8,8 +8,10 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Organization\OrganizationController;
 use App\Http\Controllers\Project\ProjectController;
 use App\Http\Controllers\Project\ProjectMember\ProjectMemberController;
+use App\Http\Controllers\Timesheet\TimeEntryController;
 use App\Http\Controllers\Timesheet\TimesheetController;
 use App\Http\Controllers\Workspace\WorkspaceController;
+use App\Models\TimeEntry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +43,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('workspaces/{workspace}/projects/{project}/timesheets', TimesheetController::class)
         ->scoped();
+
+    Route::group(['controller' => TimesheetController::class], function () {
+        Route::post('workspaces/{workspace}/projects/{project}/timesheets/{timesheet}/submit', 'submit');
+        Route::post('workspaces/{workspace}/projects/{project}/timesheets/{timesheet}/approve', 'approve');
+        Route::post('workspaces/{workspace}/projects/{project}/timesheets/{timesheet}/reject', 'reject');
+    })->scopeBindings();
+
+    Route::apiResource('workspaces/{workspace}/projects/{project}/timesheets/{timesheet}/entries', TimeEntryController::class)
+        ->scoped()
+        ->except(['show', 'index']);
 });
 
 Route::middleware('guest.api')->group(function () {

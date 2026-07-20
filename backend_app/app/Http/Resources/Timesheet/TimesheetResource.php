@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Timesheet;
 
 use App\Http\Resources\Project\ProjectResource;
+use App\Http\Resources\Timesheet\TimeEntry\TimeEntryResource;
 use App\Http\Resources\User\UserResource;
 use App\Http\Resources\Workspace\WorkspaceResource;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class TimesheetResource extends JsonResource
             'periodStart' => $this->period_start->toIsoString(),
             'periodEnd' => $this->period_end->toIsoString(),
             'status' => $this->status,
-            'entries' => ($this->whenLoaded('entries')),
+            'entries' => new TimeEntryResource($this->whenLoaded('entries')),
             'reviewedBy' => new UserResource($this->whenLoaded('reviewedBy')),
             'reviewComment' => $this->whenNotNull($this->review_comment),
             'timestamps' => [

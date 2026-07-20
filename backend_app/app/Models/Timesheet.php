@@ -85,6 +85,7 @@ class Timesheet extends Model
 
     /**
      * @param array{work_date: string, description?: string|null, hours: numeric-string|int|float, is_overtime?: bool} $attributes
+     * @throws Throwable
      */
     public function addEntry(array $attributes): TimeEntry
     {
@@ -98,10 +99,49 @@ class Timesheet extends Model
             throw new DomainException('Entries may only be changed on draft or rejected timesheets.');
         }
 
-        $entry = $this->entries()->create($attributes);
+        $entry = DB::transaction(function () use ($attributes) {
+            $entry = $this->entries()->make($attributes);
+
+            $entry->forceFill([
+                'timesheet_id' => $this->id
+            ])->saveOrFail();
+
+            return $entry;
+        });
+
         assert($entry instanceof TimeEntry);
 
         return $entry;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function updateEntry(TimeEntry $entry, array $attributes): void
+    {
+        $workDate = CarbonImmutable::parse($attributes['work_date']);
+
+        if (!$workDate->betweenIncluded($this->period_start, $this->period_end)) {
+            throw new DomainException('The work date must be within the timesheet period.');
+        }
+
+        if (!in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
+            throw new DomainException('Entries may only be changed on draft or rejected timesheets.');
+        }
+
+        $entry->updateOrFail($attributes);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function removeEntry(TimeEntry $entry): void
+    {
+        if (!in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
+            throw new DomainException('Entries may only be changed on draft or rejected timesheets.');
+        }
+
+        $entry->deleteOrFail();
     }
 
     public function workspace(): BelongsTo
