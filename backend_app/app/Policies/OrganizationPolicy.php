@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Enums\SystemRole;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;

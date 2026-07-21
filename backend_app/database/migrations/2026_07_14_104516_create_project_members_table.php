@@ -14,7 +14,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('project_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->enum('project_role', ProjectRole::cases());
+            $table->enum('project_role', array_column(ProjectRole::cases(), 'value'));
             $table->smallInteger('approval_rank');
             $table->boolean('active')->default(true);
             $table->timestamps();

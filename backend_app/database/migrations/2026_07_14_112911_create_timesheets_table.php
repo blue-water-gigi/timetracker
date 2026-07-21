@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\TimesheetStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
             $table->date('period_start');
             $table->date('period_end');
-            $table->enum('status', ['draft', 'submitted', 'approved', 'rejected'])->default('draft');
+            $table->enum('status', array_column(TimesheetStatus::cases(), 'value'))->default(TimesheetStatus::DRAFT->value);
             $table->foreignId('reviewed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->text('review_comment')->nullable();
             $table->timestamp('submitted_at')->nullable();

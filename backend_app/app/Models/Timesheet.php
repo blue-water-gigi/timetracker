@@ -49,7 +49,8 @@ class Timesheet extends Model
     }
 
     /**
-     * @param array{period_start: string, period_end: string} $attributes
+     * @param  array{period_start: string, period_end: string}  $attributes
+     *
      * @throws Throwable
      */
     public static function createForProject(Project $project, User $user, array $attributes): self
@@ -66,7 +67,7 @@ class Timesheet extends Model
             ->where('active', true)
             ->exists();
 
-        if (!$isActiveMember) {
+        if (! $isActiveMember) {
             throw new DomainException('The user must be an active project member.');
         }
 
@@ -84,34 +85,33 @@ class Timesheet extends Model
     }
 
     /**
-     * @param array{work_date: string, description?: string|null, hours: numeric-string|int|float, is_overtime?: bool} $attributes
+     * @param  array{work_date: string, description?: string|null, hours: numeric-string|int|float, is_overtime?: bool}  $attributes
+     *
+     * @phpstan-return Model
+     *
      * @throws Throwable
      */
     public function addEntry(array $attributes): TimeEntry
     {
         $workDate = CarbonImmutable::parse($attributes['work_date']);
 
-        if (!$workDate->betweenIncluded($this->period_start, $this->period_end)) {
+        if (! $workDate->betweenIncluded($this->period_start, $this->period_end)) {
             throw new DomainException('The work date must be within the timesheet period.');
         }
 
-        if (!in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
+        if (! in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
             throw new DomainException('Entries may only be changed on draft or rejected timesheets.');
         }
 
-        $entry = DB::transaction(function () use ($attributes) {
+        return DB::transaction(function () use ($attributes) {
             $entry = $this->entries()->make($attributes);
 
             $entry->forceFill([
-                'timesheet_id' => $this->id
+                'timesheet_id' => $this->id,
             ])->saveOrFail();
 
             return $entry;
         });
-
-        assert($entry instanceof TimeEntry);
-
-        return $entry;
     }
 
     /**
@@ -121,11 +121,11 @@ class Timesheet extends Model
     {
         $workDate = CarbonImmutable::parse($attributes['work_date']);
 
-        if (!$workDate->betweenIncluded($this->period_start, $this->period_end)) {
+        if (! $workDate->betweenIncluded($this->period_start, $this->period_end)) {
             throw new DomainException('The work date must be within the timesheet period.');
         }
 
-        if (!in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
+        if (! in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
             throw new DomainException('Entries may only be changed on draft or rejected timesheets.');
         }
 
@@ -137,11 +137,46 @@ class Timesheet extends Model
      */
     public function removeEntry(TimeEntry $entry): void
     {
-        if (!in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
+        if (! in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
             throw new DomainException('Entries may only be changed on draft or rejected timesheets.');
         }
 
         $entry->deleteOrFail();
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function submit(): void
+    {
+        $this->updateOrFail([
+            'status' => TimesheetStatus::SUBMITTED->value,
+            'submitted_at' => now(),
+        ]);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function approve(): void
+    {
+        $this->updateOrFail([
+            'status' => TimesheetStatus::APPROVED->value,
+            'reviewed_by_user_id' => $this->id,
+            'reviewed_at' => now(),
+        ]);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function reject(): void
+    {
+        $this->updateOrFail([
+            'status' => TimesheetStatus::REJECTED->value,
+            'reviewed_by_user_id' => $this->id,
+            'reviewed_at' => now(),
+        ]);
     }
 
     public function workspace(): BelongsTo

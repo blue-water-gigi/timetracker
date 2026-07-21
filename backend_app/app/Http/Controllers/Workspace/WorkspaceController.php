@@ -71,10 +71,9 @@ class WorkspaceController extends Controller
     /** @throws Throwable */
     public function update(
         UpdateWorkspaceRequest $request,
-        Organization           $organization,
-        Workspace              $workspace
-    ): JsonResource
-    {
+        Organization $organization,
+        Workspace $workspace
+    ): JsonResource {
         Gate::authorize('update', $workspace);
 
         $workspace->updateOrFail($request->validated());

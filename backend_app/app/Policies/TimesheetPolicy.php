@@ -1,9 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Enums\ApprovalRank;
-use App\Enums\ProjectRole;
 use App\Enums\TimesheetStatus;
 use App\Models\Timesheet;
 use App\Models\User;
@@ -13,12 +13,17 @@ use Throwable;
 class TimesheetPolicy
 {
     /**
-     * @return Response
      * @throws Throwable
+     *
+     * @enum TimesheetStatus
      */
     public function review(User $user, Timesheet $timesheet): Response
     {
-        if ($timesheet->status !== TimesheetStatus::SUBMITTED) {
+        if ($user->isAdmin()) {
+            return Response::allow();
+        }
+
+        if ($timesheet->status !== TimesheetStatus::SUBMITTED->value) {
             return Response::deny('Only submitted timesheets may be reviewed.');
         }
 
@@ -32,7 +37,7 @@ class TimesheetPolicy
             ->where('active', true)
             ->firstOrFail();
 
-        //should be a project member
+        // should be a project member
         $author = $timesheet->project->memberships()
             ->where('user_id', $user->id)
             ->where('active', true)
@@ -47,11 +52,17 @@ class TimesheetPolicy
             : Response::deny('A higher project role is required.');
     }
 
+    /**
+     * @throws Throwable
+     */
     public function approve(User $user, Timesheet $timesheet): Response
     {
         return $this->review($user, $timesheet);
     }
 
+    /**
+     * @throws Throwable
+     */
     public function reject(User $user, Timesheet $timesheet): Response
     {
         return $this->approve($user, $timesheet);
@@ -59,6 +70,8 @@ class TimesheetPolicy
 
     /**
      * Determine whether the user can view any models.
+     *
+     * @throws Throwable
      */
     public function viewAny(User $user): Response
     {
@@ -67,6 +80,8 @@ class TimesheetPolicy
 
     /**
      * Determine whether the user can view the model.
+     *
+     * @throws Throwable
      */
     public function view(User $user, Timesheet $timesheet): Response
     {
@@ -81,11 +96,11 @@ class TimesheetPolicy
             ->where('active', true)
             ->firstOrFail();
 
-        if (!$author->exists || !$approver->exists) {
+        if (! $author->exists || ! $approver->exists) {
             return Response::deny('Approver or author doesnt exist.');
         }
 
-        //author can view his own timesheet and reviewer can view timesheets of members
+        // author can view his own timesheet and reviewer can view timesheets of members
         if ($user->id === $author->id ||
             ($user->id === $approver->id && $approver->approval_rank->value > $author->approval_rank->value)) {
             return Response::allow();
@@ -112,14 +127,14 @@ class TimesheetPolicy
      */
     public function update(User $user, Timesheet $timesheet): Response
     {
-        $canUpdate = $timesheet->status === (TimesheetStatus::DRAFT || TimesheetStatus::REJECTED)
+        $canUpdate = $timesheet->status === (TimesheetStatus::DRAFT->value || TimesheetStatus::REJECTED->value)
             && $user->id === $timesheet->user_id
             && $user->projectMemberships()
                 ->whereBelongsTo($user)
                 ->where('active', true)
                 ->exists();
 
-        $canUpdate
+        return $canUpdate
             ? Response::allow()
             : Response::deny('You are not allowed to do this action.');
     }
@@ -132,5 +147,10 @@ class TimesheetPolicy
         return $user->isAdmin()
             ? Response::allow()
             : Response::deny('You are not allowed to do this action.');
+    }
+
+    public function submit(User $user, Timesheet $timesheet): Response
+    {
+        return $this->update($user, $timesheet);
     }
 }

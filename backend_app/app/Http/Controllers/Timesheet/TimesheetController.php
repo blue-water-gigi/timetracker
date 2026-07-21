@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Timesheet;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Timesheet\ApproveTimesheetRequest;
+use App\Http\Requests\Timesheet\RejectTimesheetRequest;
 use App\Http\Requests\Timesheet\StoreTimesheetRequest;
 use App\Http\Requests\Timesheet\UpdateTimesheetRequest;
 use App\Http\Resources\Timesheet\TimesheetCollection;
@@ -13,7 +17,6 @@ use App\Models\Workspace;
 use DB;
 use Gate;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Throwable;
 
@@ -36,11 +39,12 @@ class TimesheetController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
      * @throws Throwable
      */
     public function store(StoreTimesheetRequest $request, Workspace $workspace, Project $project): JsonResource
     {
-        GATE::authorize('create', Timesheet::class);
+        Gate::authorize('create', Timesheet::class);
 
         $timesheet = Timesheet::createForProject($project, $request->user(), $request->validated());
 
@@ -61,13 +65,14 @@ class TimesheetController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
      * @throws Throwable
      */
     public function update(
         UpdateTimesheetRequest $request,
-        Workspace              $workspace,
-        Project                $project,
-        Timesheet              $timesheet): JsonResource
+        Workspace $workspace,
+        Project $project,
+        Timesheet $timesheet): JsonResource
     {
         Gate::authorize('update', $timesheet);
 
@@ -78,6 +83,7 @@ class TimesheetController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
      * @throws Throwable
      */
     public function destroy(Workspace $workspace, Project $project, Timesheet $timesheet): JsonResponse
@@ -87,5 +93,59 @@ class TimesheetController extends Controller
         $timesheet->deleteOrFail();
 
         return response()->json(status: 204);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function submit(Workspace $workspace, Project $project, Timesheet $timesheet): JsonResource
+    {
+        Gate::authorize('submit', $timesheet);
+
+        $timesheet->submit();
+
+        return new TimesheetResource($timesheet->load(['project', 'user', 'entries']));
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function approve(
+        ApproveTimesheetRequest $request,
+        Workspace $workspace,
+        Project $project,
+        Timesheet $timesheet): JsonResource
+    {
+        Gate::authorize('approve', $timesheet);
+
+        $timesheet = DB::transaction(function () use ($request, $timesheet): Timesheet {
+            $timesheet->update($request->validated());
+            $timesheet->approve();
+
+            return $timesheet;
+        });
+
+        return new TimesheetResource($timesheet->load(['project', 'user', 'entries']));
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function reject(
+        RejectTimesheetRequest $request,
+        Workspace $workspace,
+        Project $project,
+        Timesheet $timesheet): JsonResource
+    {
+        Gate::authorize('reject', $timesheet);
+
+        $timesheet = DB::transaction(function () use ($request, $timesheet): Timesheet {
+            $timesheet->update($request->validated());
+            $timesheet->reject();
+
+            return $timesheet;
+        });
+
+        return new TimesheetResource($timesheet->load(['project', 'user', 'entries']));
     }
 }

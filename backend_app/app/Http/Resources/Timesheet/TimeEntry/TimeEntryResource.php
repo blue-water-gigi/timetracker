@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources\Timesheet\TimeEntry;
 
 use App\Http\Resources\Timesheet\TimesheetResource;
@@ -29,7 +31,7 @@ class TimeEntryResource extends JsonResource
             'timestamps' => [
                 'createdAt' => $this->created_at->toIsoString(),
                 'updatedAt' => $this->updated_at->toIsoString(),
-            ]
+            ],
         ];
     }
 }

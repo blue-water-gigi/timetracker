@@ -13,7 +13,7 @@ return new class extends Migration
             $table->id();
             $table->string('first_name', 50)->nullable();
             $table->string('last_name', 50)->nullable();
-            $table->enum('system_role', SystemRole::cases())->default(SystemRole::EMPLOYEE);
+            $table->enum('system_role', array_column(SystemRole::cases(), 'value'))->default(SystemRole::EMPLOYEE->value);
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

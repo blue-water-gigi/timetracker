@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Enums\SystemRole;
 use App\Models\Organization;
 use App\Models\User;
 use App\Models\Workspace;
@@ -37,7 +38,7 @@ class WorkspacePolicy
      */
     public function create(User $user, Organization $organization): Response
     {
-        $this->viewAny($user, $organization);
+        return $this->viewAny($user, $organization);
     }
 
     /**

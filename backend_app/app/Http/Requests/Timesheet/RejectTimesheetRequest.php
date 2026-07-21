@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Timesheet\TimeEntry;
+namespace App\Http\Requests\Timesheet;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreTimeEntryRequest extends FormRequest
+class RejectTimesheetRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,11 +25,7 @@ class StoreTimeEntryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'timesheet_id' => ['prohibited'],
-            'work_date' => ['required', 'date'],
-            'description' => ['nullable', 'sometimes', 'string', 'max:500'],
-            'hours' => ['required', 'decimal'],
-            'is_overtime' => ['nullable', 'sometimes', 'boolean'],
+            'review_comment' => ['required', 'string', 'max:500'],
         ];
     }
 }

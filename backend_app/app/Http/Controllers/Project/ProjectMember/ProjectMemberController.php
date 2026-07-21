@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Project\ProjectMember;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\ProjectMember\StoreProjectMember;
 use App\Http\Requests\Project\ProjectMember\UpdateProjectMember;
-use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Resources\Project\ProjectMember\ProjectMemberCollection;
 use App\Http\Resources\Project\ProjectMember\ProjectMemberResource;
 use App\Models\Project;
@@ -14,7 +15,6 @@ use App\Models\Workspace;
 use DB;
 use Gate;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Throwable;
 
@@ -37,13 +37,14 @@ class ProjectMemberController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
      * @throws Throwable
      */
     public function store(StoreProjectMember $request, Workspace $workspace, Project $project): JsonResource
     {
         Gate::authorize('create', [ProjectMember::class, $project]);
 
-        $member = DB::transaction(function () use ($request, $workspace, $project) {
+        $member = DB::transaction(function () use ($request, $project) {
             $member = $project->memberships()->make($request->validated());
 
             $member->forceFill([
@@ -68,13 +69,14 @@ class ProjectMemberController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
      * @throws Throwable
      */
     public function update(
         UpdateProjectMember $request,
-        Workspace           $workspace,
-        Project             $project,
-        ProjectMember       $membership): JsonResource
+        Workspace $workspace,
+        Project $project,
+        ProjectMember $membership): JsonResource
     {
         Gate::authorize('update', $membership);
 
@@ -85,6 +87,7 @@ class ProjectMemberController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
      * @throws Throwable
      */
     public function destroy(Workspace $workspace, Project $project, ProjectMember $membership): JsonResponse

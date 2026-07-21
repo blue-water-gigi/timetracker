@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Project\ProjectMember;
 
 use App\Enums\ProjectRole;
-use App\Models\Project;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
@@ -40,10 +41,10 @@ class StoreProjectMember extends FormRequest
                             ->orWhere('owner_id', $ownerId);
                     }),
                 Rule::unique('project_members', 'user_id')
-                    ->where('project_id', $project->getKey())
+                    ->where('project_id', $project->getKey()),
             ],
             'project_role' => ['required', 'string', Rule::enum(ProjectRole::class)],
-            'approval_rank' => ['prohibited'], //depends on the role, server maps it automatically
+            'approval_rank' => ['prohibited'], // depends on the role, server maps it automatically
             'active' => ['sometimes', 'boolean'],
         ];
     }

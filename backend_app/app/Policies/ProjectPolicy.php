@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Enums\SystemRole;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Workspace;
@@ -36,7 +37,7 @@ class ProjectPolicy
      */
     public function view(User $user, Project $project): Response
     {
-        //todo add functionality where projects can be viewed by some other users (semi-admins etc.)
+        // todo add functionality where projects can be viewed by some other users (semi-admins etc.)
 
         if ($this->ownsWorkspace($user, $project->workspace)) {
             return Response::allow();
@@ -59,7 +60,7 @@ class ProjectPolicy
      */
     public function create(User $user, Workspace $workspace): Response
     {
-        //todo add functionality where projects can be created not only by 'admin'
+        // todo add functionality where projects can be created not only by 'admin'
 
         return $this->ownsWorkspace($user, $workspace)
             ? Response::allow()

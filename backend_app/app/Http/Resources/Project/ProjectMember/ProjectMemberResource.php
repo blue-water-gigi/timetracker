@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources\Project\ProjectMember;
 
 use App\Http\Resources\Project\ProjectResource;
 use App\Http\Resources\User\UserResource;
-use App\Models\ProjectMember;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

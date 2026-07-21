@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Project\ProjectMember;
 
 use App\Enums\ProjectRole;
-use App\Models\ProjectMember;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -29,7 +30,7 @@ class UpdateProjectMember extends FormRequest
             'project_id' => ['prohibited'],
             'user_id' => ['prohibited'],
             'project_role' => ['sometimes', 'string', Rule::enum(ProjectRole::class)],
-            'approval_rank' => ['prohibited'], //depends on the role, server maps it automatically
+            'approval_rank' => ['prohibited'], // depends on the role, server maps it automatically
             'active' => ['sometimes', 'boolean'],
         ];
     }

@@ -11,11 +11,10 @@ use App\Http\Controllers\Project\ProjectMember\ProjectMemberController;
 use App\Http\Controllers\Timesheet\TimeEntryController;
 use App\Http\Controllers\Timesheet\TimesheetController;
 use App\Http\Controllers\Workspace\WorkspaceController;
-use App\Models\TimeEntry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('health', fn(Request $request) => response()->json([
+Route::get('health', fn (Request $request) => response()->json([
     'status' => 'ok',
     'app' => config('app.version'),
     'database' => 'ok',

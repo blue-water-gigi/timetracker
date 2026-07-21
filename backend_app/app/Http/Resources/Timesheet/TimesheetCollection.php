@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources\Timesheet;
 
 use Illuminate\Http\Request;
@@ -15,7 +17,7 @@ class TimesheetCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return [
-            'data' => $this->collection
+            'data' => $this->collection,
         ];
     }
 
@@ -29,7 +31,7 @@ class TimesheetCollection extends ResourceCollection
                     'project',
                     'user',
                     'reviewedBy',
-                    'entries'
+                    'entries',
                 ],
             ],
         ];

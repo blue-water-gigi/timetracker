@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Resources\Project;
 
 use App\Http\Resources\Project\ProjectMember\ProjectMemberCollection;
-use App\Http\Resources\Project\ProjectMember\ProjectMemberResource;
 use App\Http\Resources\User\UserResource;
 use App\Http\Resources\Workspace\WorkspaceResource;
 use App\Models\Project;

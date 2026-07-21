@@ -1,14 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources\Timesheet;
 
 use App\Http\Resources\Project\ProjectResource;
 use App\Http\Resources\Timesheet\TimeEntry\TimeEntryResource;
 use App\Http\Resources\User\UserResource;
 use App\Http\Resources\Workspace\WorkspaceResource;
+use App\Models\Timesheet;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Timesheet
+ */
 class TimesheetResource extends JsonResource
 {
     /**
@@ -34,7 +40,7 @@ class TimesheetResource extends JsonResource
                 'reviewed_at' => $this->whenNotNull($this->reviewed_at->toIsoString()),
                 'createdAt' => $this->created_at->toIsoString(),
                 'updatedAt' => $this->updated_at->toIsoString(),
-            ]
+            ],
         ];
     }
 }

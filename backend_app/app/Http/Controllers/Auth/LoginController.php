@@ -21,7 +21,7 @@ class LoginController extends Controller
     {
         $validated = $request->validated();
 
-        if (!Auth::attempt($validated)) {
+        if (! Auth::attempt($validated)) {
             return response()->json([
                 'data' => [
                     'error' => 'Theres no user with such credentials.',
