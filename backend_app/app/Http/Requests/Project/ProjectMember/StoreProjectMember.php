@@ -38,7 +38,7 @@ class StoreProjectMember extends FormRequest
                 Rule::exists('users', 'id')
                     ->where(function (Builder $query) use ($project, $ownerId) {
                         $query->where('workspace_id', $project->workspace_id)
-                            ->orWhere('owner_id', $ownerId);
+                            ->orWhere('id', $ownerId);
                     }),
                 Rule::unique('project_members', 'user_id')
                     ->where('project_id', $project->getKey()),

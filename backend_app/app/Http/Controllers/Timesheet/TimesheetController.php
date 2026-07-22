@@ -17,6 +17,7 @@ use App\Models\Workspace;
 use DB;
 use Gate;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Throwable;
 
@@ -25,12 +26,13 @@ class TimesheetController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Workspace $workspace, Project $project): JsonResource
+    public function index(Request $request, Workspace $workspace, Project $project): JsonResource
     {
-        Gate::authorize('viewAny', Timesheet::class);
+        Gate::authorize('viewAny', [Timesheet::class, $project]);
 
         return new TimesheetCollection(
             $project->timesheets()
+                ->visibleTo($request->user(), $project)
                 ->with(['project', 'user', 'reviewedBy', 'entries'])
                 ->paginate(10)
                 ->withQueryString()
@@ -44,7 +46,7 @@ class TimesheetController extends Controller
      */
     public function store(StoreTimesheetRequest $request, Workspace $workspace, Project $project): JsonResource
     {
-        Gate::authorize('create', Timesheet::class);
+        Gate::authorize('create', [Timesheet::class, $project]);
 
         $timesheet = Timesheet::createForProject($project, $request->user(), $request->validated());
 
@@ -70,9 +72,9 @@ class TimesheetController extends Controller
      */
     public function update(
         UpdateTimesheetRequest $request,
-        Workspace $workspace,
-        Project $project,
-        Timesheet $timesheet): JsonResource
+        Workspace              $workspace,
+        Project                $project,
+        Timesheet              $timesheet): JsonResource
     {
         Gate::authorize('update', $timesheet);
 
@@ -112,9 +114,9 @@ class TimesheetController extends Controller
      */
     public function approve(
         ApproveTimesheetRequest $request,
-        Workspace $workspace,
-        Project $project,
-        Timesheet $timesheet): JsonResource
+        Workspace               $workspace,
+        Project                 $project,
+        Timesheet               $timesheet): JsonResource
     {
         Gate::authorize('approve', $timesheet);
 
@@ -133,9 +135,9 @@ class TimesheetController extends Controller
      */
     public function reject(
         RejectTimesheetRequest $request,
-        Workspace $workspace,
-        Project $project,
-        Timesheet $timesheet): JsonResource
+        Workspace              $workspace,
+        Project                $project,
+        Timesheet              $timesheet): JsonResource
     {
         Gate::authorize('reject', $timesheet);
 

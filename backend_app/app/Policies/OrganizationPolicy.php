@@ -15,6 +15,10 @@ class OrganizationPolicy
      */
     public function viewAny(User $user): Response
     {
+        if (!$this->isOwner($user, $user->ownedOrganizations)) {
+            return Response::denyAsNotFound();
+        }
+
         return $user->isAdmin()
             ? Response::allow()
             : Response::deny('You do not have permission to view organizations.');
@@ -25,7 +29,7 @@ class OrganizationPolicy
      */
     public function view(User $user, Organization $organization): Response
     {
-        if ($user->id === $organization->owner_id) {
+        if (!$this->isOwner($user, $user->ownedOrganizations)) {
             return Response::denyAsNotFound();
         }
 
@@ -39,6 +43,10 @@ class OrganizationPolicy
      */
     public function create(User $user): Response
     {
+        if (!$this->isOwner($user, $user->ownedOrganizations)) {
+            return Response::denyAsNotFound();
+        }
+
         return $user->isAdmin()
             ? Response::allow()
             : Response::deny('You do not have permission to do this action.');
@@ -58,5 +66,10 @@ class OrganizationPolicy
     public function delete(User $user, Organization $organization): Response
     {
         return $this->view($user, $organization);
+    }
+
+    public function isOwner(User $user, Organization $organization): bool
+    {
+        return $user->getKeyName() === $organization->getForeignKey();
     }
 }

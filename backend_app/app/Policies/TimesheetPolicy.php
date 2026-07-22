@@ -5,152 +5,214 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Enums\TimesheetStatus;
+use App\Models\Project;
+use App\Models\ProjectMember;
 use App\Models\Timesheet;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
-use Throwable;
+use Illuminate\Database\Eloquent\Builder;
 
 class TimesheetPolicy
 {
-    /**
-     * @throws Throwable
-     *
-     * @enum TimesheetStatus
-     */
+
     public function review(User $user, Timesheet $timesheet): Response
     {
-        if ($user->isAdmin()) {
-            return Response::allow();
+        $project = $this->projectFor($timesheet);
+
+        //admin flow
+        if ($project === null || !$this->canAccessProjectTenant($user, $project)) {
+            return Response::denyAsNotFound();
         }
 
-        if ($timesheet->status !== TimesheetStatus::SUBMITTED->value) {
+        //status check
+        if ($timesheet->status !== TimesheetStatus::SUBMITTED) {
             return Response::deny('Only submitted timesheets may be reviewed.');
         }
 
-        if ($timesheet->user_id === $user->id) {
-            return Response::deny('User cannot review his own timesheets.');
+        //user check
+        if ($timesheet->user_id === $user->getKey()) {
+            return Response::deny('Users cannot review their own timesheets.');
         }
 
-        // should be project member
-        $approver = $timesheet->project->memberships()
-            ->whereBelongsTo($user)
-            ->where('active', true)
-            ->firstOrFail();
+        //check author and approver
+        $approver = $this->activeMembership($project, (int)$user->getKey());
+        $author = $this->activeMembership($project, (int)$timesheet->user_id);
 
-        // should be a project member
-        $author = $timesheet->project->memberships()
-            ->where('user_id', $user->id)
-            ->where('active', true)
-            ->firstOrFail();
+        if ($approver === null) {
+            return Response::deny('An active project membership is required.');
+        }
 
-        $mayReview = $approver->exists
-            && $approver->approval_rank->value > $author->approval_rank->value
-            && $author->exists;
+        if ($author === null) {
+            return Response::deny('The timesheet author is not an active project member.');
+        }
 
-        return $mayReview
-            ? Response::allow()
-            : Response::deny('A higher project role is required.');
+        if ($approver->approval_rank->value <= $author->approval_rank->value) {
+            return Response::deny('A higher project role is required.');
+        }
+
+        return Response::allow();
     }
 
-    /**
-     * @throws Throwable
-     */
+
     public function approve(User $user, Timesheet $timesheet): Response
     {
         return $this->review($user, $timesheet);
     }
 
-    /**
-     * @throws Throwable
-     */
     public function reject(User $user, Timesheet $timesheet): Response
     {
-        return $this->approve($user, $timesheet);
-    }
-
-    /**
-     * Determine whether the user can view any models.
-     *
-     * @throws Throwable
-     */
-    public function viewAny(User $user): Response
-    {
-        return $this->view($user, $user->timesheets);
-    }
-
-    /**
-     * Determine whether the user can view the model.
-     *
-     * @throws Throwable
-     */
-    public function view(User $user, Timesheet $timesheet): Response
-    {
-
-        $approver = $timesheet->project->memberships()
-            ->whereBelongsTo($user)
-            ->where('active', true)
-            ->firstOrFail();
-
-        $author = $timesheet->project->memberships()
-            ->where('user_id', $user->id)
-            ->where('active', true)
-            ->firstOrFail();
-
-        if (! $author->exists || ! $approver->exists) {
-            return Response::deny('Approver or author doesnt exist.');
-        }
-
-        // author can view his own timesheet and reviewer can view timesheets of members
-        if ($user->id === $author->id ||
-            ($user->id === $approver->id && $approver->approval_rank->value > $author->approval_rank->value)) {
-            return Response::allow();
-        }
-
-        return Response::deny('A higher project role is required.');
-    }
-
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): Response
-    {
-        return $user->projectMemberships()
-            ->whereBelongsTo($user)
-            ->where('active', true)
-            ->exists()
-            ? Response::allow()
-            : Response::denyAsNotFound();
-    }
-
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, Timesheet $timesheet): Response
-    {
-        $canUpdate = $timesheet->status === (TimesheetStatus::DRAFT->value || TimesheetStatus::REJECTED->value)
-            && $user->id === $timesheet->user_id
-            && $user->projectMemberships()
-                ->whereBelongsTo($user)
-                ->where('active', true)
-                ->exists();
-
-        return $canUpdate
-            ? Response::allow()
-            : Response::deny('You are not allowed to do this action.');
-    }
-
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, Timesheet $timesheet): Response
-    {
-        return $user->isAdmin()
-            ? Response::allow()
-            : Response::deny('You are not allowed to do this action.');
+        return $this->review($user, $timesheet);
     }
 
     public function submit(User $user, Timesheet $timesheet): Response
     {
         return $this->update($user, $timesheet);
+    }
+
+    public function viewAny(User $user, Project $project): Response
+    {
+        if (!$this->canAccessProjectTenant($user, $project)) {
+            return Response::denyAsNotFound();
+        }
+
+        if ($user->isAdmin()) {
+            return Response::allow();
+        }
+
+        return $this->activeMembership($project, (int)$user->getKey()) !== null
+            ? Response::allow()
+            : Response::deny('An active project membership is required.');
+    }
+
+    public function view(User $user, Timesheet $timesheet): Response
+    {
+        $project = $this->projectFor($timesheet);
+
+        if ($project === null || !$this->canAccessProjectTenant($user, $project)) {
+            return Response::denyAsNotFound();
+        }
+
+        //admin retain readonly access to timesheets belong to org they own.
+        if ($user->isAdmin()) {
+            return Response::allow();
+        }
+
+        $viewer = $this->activeMembership($project, (int)$user->getKey());
+        $author = $this->activeMembership($project, (int)$timesheet->user_id);
+
+        if ($viewer === null) {
+            return Response::deny('An active project membership is required.');
+        }
+
+        if ($timesheet->user_id === $user->getKey()) {
+            return Response::allow();
+        }
+
+        if ($timesheet->status !== TimesheetStatus::SUBMITTED) {
+            return Response::deny();
+        }
+
+        if ($author === null) {
+            return Response::deny('The timesheet author is not an active project member.');
+        }
+
+        if ($viewer->approval_rank->value <= $author->approval_rank->value) {
+            return Response::deny('A higher project role is required.');
+        }
+
+        return Response::allow();
+    }
+
+    public function create(User $user, Project $project): Response
+    {
+        if (!$this->canAccessProjectTenant($user, $project)) {
+            return Response::denyAsNotFound();
+        }
+
+        return $this->activeMembership($project, (int)$user->getKey()) !== null
+            ? Response::allow()
+            : Response::deny('An active project membership is required.');
+    }
+
+    public function update(User $user, Timesheet $timesheet): Response
+    {
+        $project = $this->projectFor($timesheet);
+
+        if ($project === null || !$this->canAccessProjectTenant($user, $project)) {
+            return Response::denyAsNotFound();
+        }
+
+        if (!in_array(
+            $timesheet->status,
+            [TimesheetStatus::REJECTED, TimesheetStatus::DRAFT],
+            true)) {
+            return Response::deny('Only draft or rejected timesheets may be changed.');
+        }
+
+        if ($timesheet->user_id !== $user->getKey()) {
+            return Response::deny('Only active project membership is required.');
+        }
+
+        return $this->activeMembership($project, (int)$user->getKey()) !== null
+            ? Response::allow()
+            : Response::deny('An active project membership is required.');
+    }
+
+    public function delete(User $user, Timesheet $timesheet): Response
+    {
+        return $this->update($user, $timesheet);
+    }
+
+    /**
+     * Check that timesheet belongs to certain project
+     * and project belongs to certain workspace
+     *
+     * @param Timesheet $timesheet
+     * @return Project|null
+     */
+    private function projectFor(Timesheet $timesheet): ?Project
+    {
+        $project = $timesheet->project;
+
+        if (!$project instanceof Project) {
+            return null;
+        }
+
+        if ($timesheet->workspace_id !== $project->workspace_id) {
+            return null;
+        }
+
+        return $project;
+    }
+
+    /**
+     * Check if admin have access to project
+     *
+     * @param User $user
+     * @param Project $project
+     * @return bool
+     */
+    private function canAccessProjectTenant(User $user, Project $project): bool
+    {
+        if (!$user->isAdmin()) {
+            return $user->workspace_id !== null
+                && $user->workspace_id === $project->workspace_id;
+        }
+
+        //check if project has workspace that has organization that belongs to user with owner relation
+        return $project->workspace()
+            ->whereHas(
+                'organization',
+                fn(Builder $builder): Builder => $builder->whereBelongsTo($user, 'owner')
+            )
+            ->exists();
+    }
+
+    private function activeMembership(Project $project, int $userId): ?ProjectMember
+    {
+        return $project->memberships()
+            ->where('user_id', $userId)
+            ->where('active', true)
+            ->first();
     }
 }

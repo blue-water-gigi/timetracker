@@ -8,6 +8,8 @@ use App\Enums\TimesheetStatus;
 use Carbon\CarbonImmutable;
 use Database\Factories\TimesheetFactory;
 use DomainException;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -48,8 +50,48 @@ class Timesheet extends Model
         ];
     }
 
+    #[Scope]
+    protected function visibleTo(Builder $query, User $user, Project $project): Builder
+    {
+        //admin can view timesheets only for owned organizations
+        if ($user->isAdmin()) {
+            return $query->whereHas(
+                'workspace.organization',
+                fn(Builder $builder): Builder => $builder->where('owner_id', $user->getKey())
+            );
+        }
+
+        $viewerMembership = $project->memberships()
+            ->whereBelongsTo($user)
+            ->where('active', true)
+            ->first(['approval_rank']);
+
+        return $query->where(function (Builder $query) use ($user, $project, $viewerMembership): void {
+            // author can view all his timesheets
+            $query->whereBelongsTo($user, 'user');
+
+            //if user dont have membership - return
+            if ($viewerMembership === null) {
+                return;
+            }
+
+            //approver only sees timesheets with 'submitted' status,
+            // also if author approval rank < then approver
+            // also if user is active
+            $query->orWhere(function (Builder $query) use ($viewerMembership, $project): void {
+                $query->where('status', TimesheetStatus::SUBMITTED)
+                    ->whereHas(
+                        'user.projectMemberships',
+                        fn(Builder $builder) => $builder->whereBelongsTo($project)
+                            ->where('active', true)
+                            ->where('approval_rank', '<', $viewerMembership->approval_rank->value)
+                    );
+            });
+        });
+    }
+
     /**
-     * @param  array{period_start: string, period_end: string}  $attributes
+     * @param array{period_start: string, period_end: string} $attributes
      *
      * @throws Throwable
      */
@@ -67,7 +109,7 @@ class Timesheet extends Model
             ->where('active', true)
             ->exists();
 
-        if (! $isActiveMember) {
+        if (!$isActiveMember) {
             throw new DomainException('The user must be an active project member.');
         }
 
@@ -85,7 +127,7 @@ class Timesheet extends Model
     }
 
     /**
-     * @param  array{work_date: string, description?: string|null, hours: numeric-string|int|float, is_overtime?: bool}  $attributes
+     * @param array{work_date: string, description?: string|null, hours: numeric-string|int|float, is_overtime?: bool} $attributes
      *
      * @phpstan-return Model
      *
@@ -95,11 +137,11 @@ class Timesheet extends Model
     {
         $workDate = CarbonImmutable::parse($attributes['work_date']);
 
-        if (! $workDate->betweenIncluded($this->period_start, $this->period_end)) {
+        if (!$workDate->betweenIncluded($this->period_start, $this->period_end)) {
             throw new DomainException('The work date must be within the timesheet period.');
         }
 
-        if (! in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
+        if (!in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
             throw new DomainException('Entries may only be changed on draft or rejected timesheets.');
         }
 
@@ -121,11 +163,11 @@ class Timesheet extends Model
     {
         $workDate = CarbonImmutable::parse($attributes['work_date']);
 
-        if (! $workDate->betweenIncluded($this->period_start, $this->period_end)) {
+        if (!$workDate->betweenIncluded($this->period_start, $this->period_end)) {
             throw new DomainException('The work date must be within the timesheet period.');
         }
 
-        if (! in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
+        if (!in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
             throw new DomainException('Entries may only be changed on draft or rejected timesheets.');
         }
 
@@ -137,7 +179,7 @@ class Timesheet extends Model
      */
     public function removeEntry(TimeEntry $entry): void
     {
-        if (! in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
+        if (!in_array($this->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
             throw new DomainException('Entries may only be changed on draft or rejected timesheets.');
         }
 

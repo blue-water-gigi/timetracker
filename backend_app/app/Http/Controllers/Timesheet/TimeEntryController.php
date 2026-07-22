@@ -12,6 +12,7 @@ use App\Models\Project;
 use App\Models\TimeEntry;
 use App\Models\Timesheet;
 use App\Models\Workspace;
+use Gate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Throwable;
@@ -25,10 +26,12 @@ class TimeEntryController extends Controller
      */
     public function store(
         StoreTimeEntryRequest $request,
-        Workspace $workspace,
-        Project $project,
-        Timesheet $timesheet): JsonResource
+        Workspace             $workspace,
+        Project               $project,
+        Timesheet             $timesheet): JsonResource
     {
+        Gate::authorize('create', [TimeEntry::class, $project]);
+
         $entry = $timesheet->addEntry($request->validated());
 
         return new TimeEntryResource($entry->load('timesheet'));
@@ -41,11 +44,13 @@ class TimeEntryController extends Controller
      */
     public function update(
         UpdateTimeEntryRequest $request,
-        Workspace $workspace,
-        Project $project,
-        Timesheet $timesheet,
-        TimeEntry $timeEntry): JsonResource
+        Workspace              $workspace,
+        Project                $project,
+        Timesheet              $timesheet,
+        TimeEntry              $timeEntry): JsonResource
     {
+        Gate::authorize('update', $timesheet);
+
         $timesheet->updateEntry($timeEntry, $request->validated());
 
         return new TimeEntryResource($timeEntry->load('timesheet'));
@@ -58,10 +63,12 @@ class TimeEntryController extends Controller
      */
     public function destroy(
         Workspace $workspace,
-        Project $project,
+        Project   $project,
         Timesheet $timesheet,
         TimeEntry $timeEntry): JsonResponse
     {
+        Gate::authorize('delete', $timesheet);
+
         $timesheet->removeEntry($timeEntry);
 
         return response()->json(status: 204);

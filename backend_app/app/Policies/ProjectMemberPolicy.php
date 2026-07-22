@@ -10,7 +10,7 @@ use App\Models\ProjectMember;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class ProjectMembershipPolicy
+class ProjectMemberPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -34,7 +34,7 @@ class ProjectMembershipPolicy
     public function view(User $user, ProjectMember $membership): Response
     {
         $canView = ($user->isAdmin() && $user->ownedOrganizations()->exists())
-            || $membership->query()->where('active', true);
+            || $user->projectMemberships()->where('active', true)->exists();
 
         return $canView
             ? Response::allow()
