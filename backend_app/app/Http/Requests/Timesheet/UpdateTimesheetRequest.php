@@ -16,7 +16,7 @@ class UpdateTimesheetRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -32,11 +32,11 @@ class UpdateTimesheetRequest extends FormRequest
             'user_id' => ['prohibited'],
             'period_start' => ['sometimes', 'date'],
             'period_end' => ['sometimes', 'date'],
-            'status' => ['prohibited', Rule::enum(TimesheetStatus::class)],
+            'status' => ['prohibited'],
             'reviewed_by_user_id' => ['prohibited'],
-            'review_comment' => ['nullable', 'sometimes', 'string', 'max:500'],
-            'submitted_at' => ['nullable', 'sometimes', 'date'],
-            'reviewed_at' => ['nullable', 'sometimes', 'date'],
+            'review_comment' => ['prohibited'],
+            'submitted_at' => ['prohibited'],
+            'reviewed_at' => ['prohibited'],
         ];
     }
 }

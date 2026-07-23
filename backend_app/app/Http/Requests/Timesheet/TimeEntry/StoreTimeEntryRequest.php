@@ -28,7 +28,7 @@ class StoreTimeEntryRequest extends FormRequest
             'timesheet_id' => ['prohibited'],
             'work_date' => ['required', 'date'],
             'description' => ['nullable', 'sometimes', 'string', 'max:500'],
-            'hours' => ['required', 'decimal'],
+            'hours' => ['required', 'decimal:0,2', 'gte:0', 'lte:24'],
             'is_overtime' => ['nullable', 'sometimes', 'boolean'],
         ];
     }

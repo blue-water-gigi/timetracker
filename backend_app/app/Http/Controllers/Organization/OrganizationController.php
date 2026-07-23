@@ -59,7 +59,7 @@ class OrganizationController extends Controller
 
         $organization->updateOrFail($request->validated());
 
-        return new OrganizationResource($organization->with('owner'));
+        return new OrganizationResource($organization->load('owner'));
     }
 
     /** @throws Throwable */

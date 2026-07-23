@@ -32,14 +32,14 @@ class TimesheetResource extends JsonResource
             'periodStart' => $this->period_start->toIsoString(),
             'periodEnd' => $this->period_end->toIsoString(),
             'status' => $this->status,
-            'entries' => new TimeEntryResource($this->whenLoaded('entries')),
+            'entries' => TimeEntryResource::collection($this->whenLoaded('entries')),
             'reviewedBy' => new UserResource($this->whenLoaded('reviewedBy')),
             'reviewComment' => $this->whenNotNull($this->review_comment),
             'timestamps' => [
-                'submittedAt' => $this->whenNotNull($this->submitted_at->toIsoString()),
-                'reviewed_at' => $this->whenNotNull($this->reviewed_at->toIsoString()),
-                'createdAt' => $this->created_at->toIsoString(),
-                'updatedAt' => $this->updated_at->toIsoString(),
+                'submittedAt' => $this->whenNotNull($this->submitted_at?->toIsoString()),
+                'reviewedAt' => $this->whenNotNull($this->reviewed_at?->toIsoString()),
+                'createdAt' => $this->created_at?->toIsoString(),
+                'updatedAt' => $this->updated_at?->toIsoString(),
             ],
         ];
     }

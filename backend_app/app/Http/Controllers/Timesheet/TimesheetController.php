@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Timesheet;
 
+use App\Enums\TimesheetStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Timesheet\ApproveTimesheetRequest;
 use App\Http\Requests\Timesheet\RejectTimesheetRequest;
@@ -116,18 +117,14 @@ class TimesheetController extends Controller
         ApproveTimesheetRequest $request,
         Workspace               $workspace,
         Project                 $project,
-        Timesheet               $timesheet): JsonResource
+        Timesheet               $timesheet,
+        ?string                 $reviewComment): JsonResource
     {
         Gate::authorize('approve', $timesheet);
 
-        $timesheet = DB::transaction(function () use ($request, $timesheet): Timesheet {
-            $timesheet->update($request->validated());
-            $timesheet->approve();
+        $timesheet->review($request->user(), TimesheetStatus::APPROVED, $reviewComment);
 
-            return $timesheet;
-        });
-
-        return new TimesheetResource($timesheet->load(['project', 'user', 'entries']));
+        return new TimesheetResource($timesheet->load(['project', 'user', 'entries', 'reviewedBy']));
     }
 
     /**
@@ -137,17 +134,13 @@ class TimesheetController extends Controller
         RejectTimesheetRequest $request,
         Workspace              $workspace,
         Project                $project,
-        Timesheet              $timesheet): JsonResource
+        Timesheet              $timesheet,
+        ?string                $reviewComment): JsonResource
     {
         Gate::authorize('reject', $timesheet);
 
-        $timesheet = DB::transaction(function () use ($request, $timesheet): Timesheet {
-            $timesheet->update($request->validated());
-            $timesheet->reject();
+        $timesheet->review($request->user(), TimesheetStatus::REJECTED, $reviewComment);
 
-            return $timesheet;
-        });
-
-        return new TimesheetResource($timesheet->load(['project', 'user', 'entries']));
+        return new TimesheetResource($timesheet->load(['project', 'user', 'entries', 'reviewedBy']));
     }
 }

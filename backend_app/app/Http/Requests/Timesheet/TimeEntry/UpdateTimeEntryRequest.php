@@ -6,6 +6,7 @@ namespace App\Http\Requests\Timesheet\TimeEntry;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateTimeEntryRequest extends FormRequest
 {
@@ -28,7 +29,7 @@ class UpdateTimeEntryRequest extends FormRequest
             'timesheet_id' => ['prohibited'],
             'work_date' => ['sometimes', 'date'],
             'description' => ['sometimes', 'string', 'max:500'],
-            'hours' => ['sometimes', 'decimal'],
+            'hours' => ['sometimes', 'decimal:0,2', 'gte:0', 'lte:24'],
             'is_overtime' => ['sometimes', 'boolean'],
         ];
     }

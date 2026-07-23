@@ -157,11 +157,20 @@ class Timesheet extends Model
     }
 
     /**
+     * @param array{
+     *      work_date?: string,
+     *      description?: string|null,
+     *      hours?: numeric-string|int|float,
+     *      is_overtime?: bool
+     *  } $attributes
+     *
      * @throws Throwable
      */
     public function updateEntry(TimeEntry $entry, array $attributes): void
     {
-        $workDate = CarbonImmutable::parse($attributes['work_date']);
+        $workDate = array_key_exists('work_date', $attributes)
+            ? CarbonImmutable::parse($attributes['work_date'])
+            : CarbonImmutable::parse($entry->work_date);
 
         if (!$workDate->betweenIncluded($this->period_start, $this->period_end)) {
             throw new DomainException('The work date must be within the timesheet period.');
@@ -189,59 +198,84 @@ class Timesheet extends Model
     /**
      * @throws Throwable
      */
-    public function submit(): void
+    public function submit(): self
     {
-        $this->updateOrFail([
-            'status' => TimesheetStatus::SUBMITTED->value,
-            'submitted_at' => now(),
-        ]);
+        return DB::transaction(function () {
+            $timesheet = $this->query()
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (!in_array($timesheet->status, [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED], true)) {
+                throw new DomainException('Entries may only be changed on draft or rejected timesheets.');
+            }
+
+            $timesheet->forceFill([
+                'reviewed_by_user_id' => null,
+                'reviewed_at' => null,
+                'review_comment' => null,
+                'status' => TimesheetStatus::SUBMITTED,
+                'submitted_at' => Carbon::now(),
+            ])->saveOrFail();
+
+            return $timesheet;
+        });
     }
 
     /**
      * @throws Throwable
      */
-    public function approve(): void
+    public function review(User $reviewer, TimesheetStatus $decision, ?string $reviewComment): self
     {
-        $this->updateOrFail([
-            'status' => TimesheetStatus::APPROVED->value,
-            'reviewed_by_user_id' => $this->id,
-            'reviewed_at' => now(),
-        ]);
+        return DB::transaction(function () use ($reviewer, $decision, $reviewComment) {
+            $timesheet = $this->query()
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($timesheet->status !== TimesheetStatus::SUBMITTED) {
+                throw new DomainException('Entries may only be changed on draft or rejected timesheets.');
+            }
+
+            if (!in_array($decision, [TimesheetStatus::APPROVED, TimesheetStatus::REJECTED], true)) {
+                throw new DomainException("Decision must be 'approved' or 'rejected'.");
+            }
+
+            $timesheet->forceFill([
+                'reviewed_by_user_id' => $reviewer->getKey(),
+                'reviewed_at' => Carbon::now(),
+                'review_comment' => $reviewComment,
+                'status' => $decision
+            ])->saveOrFail();
+
+            return $timesheet;
+        });
     }
 
-    /**
-     * @throws Throwable
-     */
-    public function reject(): void
-    {
-        $this->updateOrFail([
-            'status' => TimesheetStatus::REJECTED->value,
-            'reviewed_by_user_id' => $this->id,
-            'reviewed_at' => now(),
-        ]);
-    }
-
-    public function workspace(): BelongsTo
+    public
+    function workspace(): BelongsTo
     {
         return $this->belongsTo(Workspace::class);
     }
 
-    public function project(): BelongsTo
+    public
+    function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
-    public function user(): BelongsTo
+    public
+    function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function reviewedBy(): BelongsTo
+    public
+    function reviewedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by_user_id');
     }
 
-    public function entries(): HasMany
+    public
+    function entries(): HasMany
     {
         return $this->hasMany(TimeEntry::class);
     }

@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('timesheet_id')->constrained()->cascadeOnDelete();
             $table->date('work_date');
             $table->text('description')->nullable();
-            $table->decimal('hours', 5, 2);
+            $table->decimal('hours', 5, 2)->unsigned();
             $table->boolean('is_overtime')->default(false);
             $table->timestamps();
 

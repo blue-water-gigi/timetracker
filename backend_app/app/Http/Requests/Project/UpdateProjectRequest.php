@@ -25,13 +25,15 @@ class UpdateProjectRequest extends FormRequest
      */
     public function rules(): array
     {
+        $project = $this->route('project');
+
         return [
-            'workspace_id' => ['sometimes', 'integer', Rule::exists('workspaces', 'workspace_id')],
+            'workspace_id' => ['prohibited'],
             'created_by_user_id' => ['prohibited'],
             'updated_by_user_id' => ['prohibited'],
             'name' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'string', 'max:500'],
-            'slug' => ['sometimes', 'string', Rule::unique('projects', 'slug')],
+            'slug' => ['sometimes', 'string', Rule::unique('projects', 'slug')->ignore($project)],
             'active' => ['sometimes', 'boolean'],
             'period_start' => ['nullable', 'sometimes', 'date'],
             'period_end' => ['nullable', 'sometimes', 'date'],

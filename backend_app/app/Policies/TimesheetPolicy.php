@@ -208,6 +208,11 @@ class TimesheetPolicy
             ->exists();
     }
 
+    /**
+     * @param Project $project
+     * @param int $userId
+     * @return ProjectMember|null
+     */
     private function activeMembership(Project $project, int $userId): ?ProjectMember
     {
         return $project->memberships()
