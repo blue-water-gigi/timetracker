@@ -30,15 +30,10 @@ class WorkspaceCollection extends ResourceCollection
     {
         return [
             'meta' => [
-                'resource' => 'workspace',
-                'multiTenant' => true,
-                'filters' => [
-                    'search' => $request->query('search'),
-                    'name' => $request->query('name'),
-                ],
+                'resource' => 'workspaces',
                 'includes' => [
                     'organization',
-                    'users_count',
+                    'usersCount',
                 ],
             ],
         ];

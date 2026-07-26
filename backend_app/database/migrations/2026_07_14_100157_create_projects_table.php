@@ -21,6 +21,7 @@ return new class extends Migration
             $table->date('period_start')->nullable();
             $table->date('period_end')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['id', 'workspace_id']);
             $table->index(['workspace_id', 'active']);

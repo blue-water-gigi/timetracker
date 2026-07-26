@@ -30,13 +30,13 @@ class StoreTimesheetRequest extends FormRequest
             'workspace_id' => ['prohibited'],
             'project_id' => ['prohibited'],
             'user_id' => ['prohibited'],
-            'period_start' => ['required', 'date'],
-            'period_end' => ['required', 'date'],
+            'period_start' => ['bail', 'required', 'date'],
+            'period_end' => ['bail', 'required', 'date', 'after_or_equal:period_start'],
             'status' => ['prohibited', Rule::enum(TimesheetStatus::class)],
             'reviewed_by_user_id' => ['prohibited'],
-            'review_comment' => ['nullable', 'sometimes', 'string', 'max:500'],
-            'submitted_at' => ['nullable', 'sometimes', 'date'],
-            'reviewed_at' => ['nullable', 'sometimes', 'date'],
+            'review_comment' => ['prohibited'],
+            'submitted_at' => ['prohibited'],
+            'reviewed_at' => ['prohibited'],
         ];
     }
 }

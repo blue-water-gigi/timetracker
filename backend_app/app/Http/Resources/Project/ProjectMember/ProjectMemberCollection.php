@@ -25,7 +25,7 @@ class ProjectMemberCollection extends ResourceCollection
     {
         return [
             'meta' => [
-                'resource' => 'projectMember',
+                'resource' => 'projectMembers',
                 'includes' => [
                     'user',
                     'project',

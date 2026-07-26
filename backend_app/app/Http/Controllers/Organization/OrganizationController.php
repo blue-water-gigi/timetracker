@@ -27,6 +27,7 @@ class OrganizationController extends Controller
                 ->ownedOrganizations()
                 ->withCount(['workspaces', 'users'])
                 ->with('owner')
+                ->latest()
                 ->paginate(10)
                 ->withQueryString()
         );
@@ -59,7 +60,7 @@ class OrganizationController extends Controller
 
         $organization->updateOrFail($request->validated());
 
-        return new OrganizationResource($organization->with('owner'));
+        return new OrganizationResource($organization->load('owner'));
     }
 
     /** @throws Throwable */
@@ -67,7 +68,7 @@ class OrganizationController extends Controller
     {
         Gate::authorize('delete', $organization);
 
-        $organization->deleteOrFail();
+        $organization->archive();
 
         return response()->json(status: 204);
     }

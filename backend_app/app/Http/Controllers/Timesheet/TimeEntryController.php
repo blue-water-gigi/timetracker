@@ -26,11 +26,11 @@ class TimeEntryController extends Controller
      */
     public function store(
         StoreTimeEntryRequest $request,
-        Workspace             $workspace,
-        Project               $project,
-        Timesheet             $timesheet): JsonResource
+        Workspace $workspace,
+        Project $project,
+        Timesheet $timesheet): JsonResource
     {
-        Gate::authorize('create', [TimeEntry::class, $project]);
+        Gate::authorize('update', $timesheet);
 
         $entry = $timesheet->addEntry($request->validated());
 
@@ -44,16 +44,16 @@ class TimeEntryController extends Controller
      */
     public function update(
         UpdateTimeEntryRequest $request,
-        Workspace              $workspace,
-        Project                $project,
-        Timesheet              $timesheet,
-        TimeEntry              $timeEntry): JsonResource
+        Workspace $workspace,
+        Project $project,
+        Timesheet $timesheet,
+        TimeEntry $entry): JsonResource
     {
         Gate::authorize('update', $timesheet);
 
-        $timesheet->updateEntry($timeEntry, $request->validated());
+        $entry = $timesheet->updateEntry($entry, $request->validated());
 
-        return new TimeEntryResource($timeEntry->load('timesheet'));
+        return new TimeEntryResource($entry->load('timesheet'));
     }
 
     /**
@@ -63,13 +63,13 @@ class TimeEntryController extends Controller
      */
     public function destroy(
         Workspace $workspace,
-        Project   $project,
+        Project $project,
         Timesheet $timesheet,
-        TimeEntry $timeEntry): JsonResponse
+        TimeEntry $entry): JsonResponse
     {
         Gate::authorize('delete', $timesheet);
 
-        $timesheet->removeEntry($timeEntry);
+        $timesheet->removeEntry($entry);
 
         return response()->json(status: 204);
     }

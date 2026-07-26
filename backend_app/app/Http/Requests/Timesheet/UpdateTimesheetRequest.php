@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Timesheet;
 
-use App\Enums\TimesheetStatus;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpdateTimesheetRequest extends FormRequest
 {
@@ -16,7 +16,7 @@ class UpdateTimesheetRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -30,13 +30,61 @@ class UpdateTimesheetRequest extends FormRequest
             'workspace_id' => ['prohibited'],
             'project_id' => ['prohibited'],
             'user_id' => ['prohibited'],
-            'period_start' => ['sometimes', 'date'],
-            'period_end' => ['sometimes', 'date'],
-            'status' => ['prohibited', Rule::enum(TimesheetStatus::class)],
+            'period_start' => ['bail', 'sometimes', 'date'],
+            'period_end' => ['bail', 'sometimes', 'date'],
+            'status' => ['prohibited'],
             'reviewed_by_user_id' => ['prohibited'],
-            'review_comment' => ['nullable', 'sometimes', 'string', 'max:500'],
-            'submitted_at' => ['nullable', 'sometimes', 'date'],
-            'reviewed_at' => ['nullable', 'sometimes', 'date'],
+            'review_comment' => ['prohibited'],
+            'submitted_at' => ['prohibited'],
+            'reviewed_at' => ['prohibited'],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                if ($validator->errors()->hasAny(['period_start', 'period_end'])) {
+                    return;
+                }
+
+                $timesheet = $this->route('timesheet');
+
+                $periodStart = CarbonImmutable::parse(
+                    $this->input('period_start', $timesheet->period_start->toDateString())
+                );
+
+                $periodEnd = CarbonImmutable::parse(
+                    $this->input('period_end', $timesheet->period_end->toDateString())
+                );
+
+                if ($periodStart->isAfter($periodEnd)) {
+                    $validator->errors()->add(
+                        $this->has('period_end') ? 'period_end' : 'period_start',
+                        'The period start must not be after the period end.'
+                    );
+
+                    return;
+                }
+
+                if (! $this->hasAny(['period_start', 'period_end'])) {
+                    return;
+                }
+
+                $hasOutOfRangeEntries = $timesheet->entries()
+                    ->where(function ($query) use ($periodStart, $periodEnd) {
+                        $query->where('work_date', '<', $periodStart->toDateString())
+                            ->orWhere('work_date', '>', $periodEnd->toDateString());
+                    })
+                    ->exists();
+
+                if ($hasOutOfRangeEntries) {
+                    $validator->errors()->add(
+                        $this->has('period_end') ? 'period_end' : 'period_start',
+                        'Cannot change the period: one or more time entries fall outside the new range.'
+                    );
+                }
+            },
         ];
     }
 }

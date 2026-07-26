@@ -25,13 +25,12 @@ class TimesheetCollection extends ResourceCollection
     {
         return [
             'meta' => [
-                'resource' => 'timesheet',
-                'multiTenant' => true,
+                'resource' => 'timesheets',
                 'includes' => [
                     'project',
-                    'user',
+                    'createdBy',
                     'reviewedBy',
-                    'entries',
+                    'entriesCount',
                 ],
             ],
         ];

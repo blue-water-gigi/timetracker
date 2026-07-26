@@ -11,7 +11,7 @@ test('guest can login with valid credentials', function () {
     $this->actingAsGuest()->postJson('/api/v1/login', [
         'email' => 'test@mail.com',
         'password' => 'password',
-    ])->assertCreated();
+    ])->assertOk();
 });
 
 test('login rejects invalid credentials', function () {

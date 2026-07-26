@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\ProjectRole;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +13,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('project_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->enum('project_role', array_column(ProjectRole::cases(), 'value'));
+            $table->enum('project_role', ['project_lead', 'manager', 'senior', 'participant']);
             $table->smallInteger('approval_rank');
             $table->boolean('active')->default(true);
             $table->timestamps();

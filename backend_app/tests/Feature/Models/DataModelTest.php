@@ -4,13 +4,11 @@ use App\Enums\ApprovalRank;
 use App\Enums\ProjectRole;
 use App\Enums\SystemRole;
 use App\Enums\TimesheetStatus;
-use App\Models\Organization;
 use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\Timesheet;
 use App\Models\User;
 use App\Models\Workspace;
-use Illuminate\Database\QueryException;
 
 test('model defaults and protected attributes follow the domain contract', function () {
     $user = new User([
@@ -120,10 +118,25 @@ test('timesheet rejects non-members and out-of-period entries', function () {
     ]))->toThrow(DomainException::class);
 });
 
-test('restrict foreign keys preserve tenant aggregates', function () {
+test('soft deletion archives tenant aggregates and preserves timesheet history', function () {
     $workspace = Workspace::factory()->create();
     $organization = $workspace->organization;
+    $project = Project::factory()->for($workspace)->create();
+    $user = User::factory()->forWorkspace($workspace)->create();
+    ProjectMember::factory()->for($project)->for($user)->create();
+    $timesheet = Timesheet::factory()->for($project)->for($user)->create([
+        'workspace_id' => $workspace->id,
+    ]);
+    $entry = $timesheet->entries()->create([
+        'work_date' => $timesheet->period_start,
+        'hours' => 8,
+    ]);
 
-    expect(fn () => $organization->delete())->toThrow(QueryException::class)
-        ->and(Organization::query()->whereKey($organization)->exists())->toBeTrue();
+    $organization->archive();
+
+    $this->assertSoftDeleted('organizations', ['id' => $organization->id]);
+    $this->assertSoftDeleted('workspaces', ['id' => $workspace->id]);
+    $this->assertSoftDeleted('projects', ['id' => $project->id]);
+    $this->assertDatabaseHas('timesheets', ['id' => $timesheet->id]);
+    $this->assertDatabaseHas('time_entries', ['id' => $entry->id]);
 });

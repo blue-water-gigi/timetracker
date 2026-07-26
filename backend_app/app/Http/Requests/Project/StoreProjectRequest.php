@@ -25,8 +25,6 @@ class StoreProjectRequest extends FormRequest
      */
     public function rules(): array
     {
-        $this->route('workspace');
-
         return [
             'workspace_id' => ['prohibited'],
             'created_by_user_id' => ['prohibited'],
@@ -35,8 +33,8 @@ class StoreProjectRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:500'],
             'slug' => ['required', 'string', Rule::unique('projects', 'slug')],
             'active' => ['sometimes', 'boolean'],
-            'period_start' => ['nullable', 'sometimes', 'date'],
-            'period_end' => ['nullable', 'sometimes', 'date'],
+            'period_start' => ['nullable', 'required_with:period_end', 'date'],
+            'period_end' => ['nullable', 'required_with:period_start', 'date', 'after_or_equal:period_start'],
         ];
     }
 }

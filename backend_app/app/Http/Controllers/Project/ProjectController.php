@@ -10,6 +10,7 @@ use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Http\Resources\Project\ProjectCollection;
 use App\Http\Resources\Project\ProjectResource;
 use App\Models\Project;
+use App\Models\User;
 use App\Models\Workspace;
 use Auth;
 use DB;
@@ -25,12 +26,16 @@ class ProjectController extends Controller
      */
     public function index(Workspace $workspace): JsonResource
     {
+        /** @var User $user */
+        $user = Auth::user();
+
         Gate::authorize('viewAny', [Project::class, $workspace]);
 
         return new ProjectCollection(
-            $workspace->projects()
-                ->with(['memberships', 'workspace', 'createdBy', 'updatedBy'])
+            Project::query()->visibleTo($user, $workspace)
+                ->with(['workspace', 'createdBy', 'updatedBy'])
                 ->withCount('memberships')
+                ->latest()
                 ->paginate(15)
                 ->withQueryString()
         );
@@ -38,12 +43,16 @@ class ProjectController extends Controller
 
     public function showMyProjects(Workspace $workspace): JsonResource
     {
+        /** @var User $user */
+        $user = Auth::user();
+
         Gate::authorize('viewSelfProjects', [Project::class, $workspace]);
 
         return new ProjectCollection(
-            Auth::user()->projects()
+            Project::query()->visibleTo($user, $workspace)
                 ->with(['workspace', 'createdBy', 'updatedBy'])
                 ->withCount('memberships')
+                ->latest()
                 ->paginate(10)
                 ->withQueryString()
         );
@@ -93,7 +102,12 @@ class ProjectController extends Controller
     {
         Gate::authorize('update', $project);
 
-        $project->updateOrFail($request->validated());
+        DB::transaction(function () use ($request, $project): void {
+            $project->fill($request->validated())
+                ->forceFill([
+                    'updated_by_user_id' => $request->user()?->id,
+                ])->saveOrFail();
+        });
 
         return new ProjectResource($project->load('workspace'));
     }

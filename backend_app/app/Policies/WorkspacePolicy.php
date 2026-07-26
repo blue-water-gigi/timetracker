@@ -16,6 +16,10 @@ class WorkspacePolicy
      */
     public function viewAny(User $user, Organization $organization): Response
     {
+        if (! $this->isOwner($user, $organization)) {
+            return Response::denyAsNotFound();
+        }
+
         return $user->isAdmin()
             ? Response::allow()
             : Response::deny('You do not have permission to do this action.');
@@ -26,11 +30,10 @@ class WorkspacePolicy
      */
     public function view(User $user, Workspace $workspace): Response
     {
-        return $user->isAdmin() && $workspace->organization()
-            ->where('owner_id', $user->getKey())
-            ->exists()
-            ? Response::allow()
-            : Response::denyAsNotFound();
+        return $user->isAdmin()
+            && $workspace->organization()->where('owner_id', $user->getKey())->exists()
+                ? Response::allow()
+                : Response::denyAsNotFound();
     }
 
     /**
@@ -60,5 +63,10 @@ class WorkspacePolicy
     public function rotateJoinCode(User $user, Workspace $workspace): Response
     {
         return $this->view($user, $workspace);
+    }
+
+    private function isOwner(User $user, Organization $organization): bool
+    {
+        return $user->getKey() === $organization->owner_id;
     }
 }

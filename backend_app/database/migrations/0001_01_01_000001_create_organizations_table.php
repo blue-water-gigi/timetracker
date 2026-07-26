@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('owner_id')->constrained('users')->restrictOnDelete();
             $table->string('name');
             $table->string('slug')->unique();
-            $table->timestamp('archived_at')->nullable();
+            $table->softDeletes();
             $table->timestamps();
 
             $table->index('owner_id');

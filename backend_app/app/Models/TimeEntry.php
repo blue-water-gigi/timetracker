@@ -8,7 +8,9 @@ use Database\Factories\TimeEntryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/** @property Carbon $work_date */
 class TimeEntry extends Model
 {
     /** @use HasFactory<TimeEntryFactory> */

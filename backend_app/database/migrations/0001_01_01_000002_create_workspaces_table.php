@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('join_code_hash', 64)->unique();
             $table->boolean('active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['organization_id', 'slug']);
         });

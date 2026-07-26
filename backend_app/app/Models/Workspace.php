@@ -11,12 +11,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Throwable;
 
 class Workspace extends Model
 {
     /** @use HasFactory<WorkspaceFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -68,21 +71,37 @@ class Workspace extends Model
         return $joinCode;
     }
 
+    /** @throws Throwable */
+    public function archive(): void
+    {
+        DB::transaction(function (): void {
+            foreach ($this->projects()->get() as $project) {
+                $project->deleteOrFail();
+            }
+
+            $this->deleteOrFail();
+        });
+    }
+
+    /** @return HasMany<User, $this> */
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
     }
 
+    /** @return BelongsTo<Organization, $this> */
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
+    /** @return HasMany<Project, $this> */
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
     }
 
+    /** @return HasMany<Timesheet, $this> */
     public function timesheets(): HasMany
     {
         return $this->hasMany(Timesheet::class);

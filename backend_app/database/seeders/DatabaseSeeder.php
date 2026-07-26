@@ -17,6 +17,10 @@ class DatabaseSeeder extends Seeder
             OrganizationSeeder::class,
             WorkspaceSeeder::class,
             UserSeeder::class,
+            ProjectSeeder::class,
+            ProjectMemberSeeder::class,
+            TimesheetSeeder::class,
+            TimeEntrySeeder::class,
         ]);
     }
 }

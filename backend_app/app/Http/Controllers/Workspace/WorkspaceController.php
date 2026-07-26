@@ -28,6 +28,7 @@ class WorkspaceController extends Controller
             $organization->workspaces()
                 ->with('organization')
                 ->withCount('users')
+                ->latest()
                 ->paginate(15)
                 ->withQueryString()
         );
@@ -64,7 +65,7 @@ class WorkspaceController extends Controller
         Gate::authorize('view', $workspace);
 
         return new WorkspaceResource(
-            $workspace->load('organization')->loadCount('users')
+            $workspace->load('organization', 'projects')->loadCount('users')
         );
     }
 
@@ -86,7 +87,7 @@ class WorkspaceController extends Controller
     {
         Gate::authorize('delete', $workspace);
 
-        $workspace->deleteOrFail();
+        $workspace->archive();
 
         return response()->json(status: 204);
     }

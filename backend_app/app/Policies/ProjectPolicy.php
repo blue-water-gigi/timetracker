@@ -37,9 +37,7 @@ class ProjectPolicy
      */
     public function view(User $user, Project $project): Response
     {
-        // todo add functionality where projects can be viewed by some other users (semi-admins etc.)
-
-        if ($this->ownsWorkspace($user, $project->workspace)) {
+        if ($this->ownsProject($user, $project)) {
             return Response::allow();
         }
 
@@ -60,8 +58,6 @@ class ProjectPolicy
      */
     public function create(User $user, Workspace $workspace): Response
     {
-        // todo add functionality where projects can be created not only by 'admin'
-
         return $this->ownsWorkspace($user, $workspace)
             ? Response::allow()
             : Response::denyAsNotFound();
@@ -72,8 +68,7 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): Response
     {
-        // todo add functionality where projects can be updated not only by 'admin'
-        return $this->ownsWorkspace($user, $project->workspace)
+        return $this->ownsProject($user, $project)
             ? Response::allow()
             : Response::denyAsNotFound();
     }
@@ -83,8 +78,15 @@ class ProjectPolicy
      */
     public function delete(User $user, Project $project): Response
     {
-        // todo add functionality where projects can be deleted not only by 'admin'
         return $this->update($user, $project);
+    }
+
+    private function ownsProject(User $user, Project $project): bool
+    {
+        return $user->isAdmin()
+            && $project->workspace()
+                ->whereRelation('organization', 'owner_id', $user->getKey())
+                ->exists();
     }
 
     private function ownsWorkspace(User $user, Workspace $workspace): bool

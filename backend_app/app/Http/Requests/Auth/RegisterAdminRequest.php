@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
-class RegisterAdminRequest extends FormRequest
+class RegisterAdminRequest extends AuthFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Workspace;
 
 use App\Http\Resources\Organization\OrganizationResource;
+use App\Http\Resources\Project\ProjectCollection;
 use App\Models\Workspace;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -22,6 +23,7 @@ class WorkspaceResource extends JsonResource
             'description' => $this->whenNotNull($this->description),
             'active' => $this->active,
             'organization' => new OrganizationResource($this->whenLoaded('organization')),
+            'projects' => new ProjectCollection($this->whenLoaded('projects')),
             'timestamps' => [
                 'createdAt' => $this->created_at?->toISOString(),
                 'updatedAt' => $this->updated_at?->toISOString(),

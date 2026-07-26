@@ -14,35 +14,38 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TimesheetPolicy
 {
-
     public function review(User $user, Timesheet $timesheet): Response
     {
         $project = $this->projectFor($timesheet);
 
-        //admin flow
-        if ($project === null || !$this->canAccessProjectTenant($user, $project)) {
+        // admin flow
+        if (! $project instanceof Project || ! $this->canAccessProjectTenant($user, $project)) {
             return Response::denyAsNotFound();
         }
 
-        //status check
+        // status check
         if ($timesheet->status !== TimesheetStatus::SUBMITTED) {
             return Response::deny('Only submitted timesheets may be reviewed.');
         }
 
-        //user check
+        if ($user->isAdmin()) {
+            return Response::allow();
+        }
+
+        // user check
         if ($timesheet->user_id === $user->getKey()) {
             return Response::deny('Users cannot review their own timesheets.');
         }
 
-        //check author and approver
-        $approver = $this->activeMembership($project, (int)$user->getKey());
-        $author = $this->activeMembership($project, (int)$timesheet->user_id);
+        // check author and approver
+        $approver = $this->activeMembership($project, (int) $user->getKey());
+        $author = $this->activeMembership($project, (int) $timesheet->user_id);
 
-        if ($approver === null) {
+        if (! $approver instanceof ProjectMember) {
             return Response::deny('An active project membership is required.');
         }
 
-        if ($author === null) {
+        if (! $author instanceof ProjectMember) {
             return Response::deny('The timesheet author is not an active project member.');
         }
 
@@ -52,7 +55,6 @@ class TimesheetPolicy
 
         return Response::allow();
     }
-
 
     public function approve(User $user, Timesheet $timesheet): Response
     {
@@ -71,7 +73,7 @@ class TimesheetPolicy
 
     public function viewAny(User $user, Project $project): Response
     {
-        if (!$this->canAccessProjectTenant($user, $project)) {
+        if (! $this->canAccessProjectTenant($user, $project)) {
             return Response::denyAsNotFound();
         }
 
@@ -79,7 +81,7 @@ class TimesheetPolicy
             return Response::allow();
         }
 
-        return $this->activeMembership($project, (int)$user->getKey()) !== null
+        return $this->activeMembership($project, (int) $user->getKey()) instanceof ProjectMember
             ? Response::allow()
             : Response::deny('An active project membership is required.');
     }
@@ -88,19 +90,19 @@ class TimesheetPolicy
     {
         $project = $this->projectFor($timesheet);
 
-        if ($project === null || !$this->canAccessProjectTenant($user, $project)) {
+        if (! $project instanceof Project || ! $this->canAccessProjectTenant($user, $project)) {
             return Response::denyAsNotFound();
         }
 
-        //admin retain readonly access to timesheets belong to org they own.
+        // admin retain readonly access to timesheets belong to org they own.
         if ($user->isAdmin()) {
             return Response::allow();
         }
 
-        $viewer = $this->activeMembership($project, (int)$user->getKey());
-        $author = $this->activeMembership($project, (int)$timesheet->user_id);
+        $viewer = $this->activeMembership($project, (int) $user->getKey());
+        $author = $this->activeMembership($project, (int) $timesheet->user_id);
 
-        if ($viewer === null) {
+        if (! $viewer instanceof ProjectMember) {
             return Response::deny('An active project membership is required.');
         }
 
@@ -112,7 +114,7 @@ class TimesheetPolicy
             return Response::deny();
         }
 
-        if ($author === null) {
+        if (! $author instanceof ProjectMember) {
             return Response::deny('The timesheet author is not an active project member.');
         }
 
@@ -125,11 +127,11 @@ class TimesheetPolicy
 
     public function create(User $user, Project $project): Response
     {
-        if (!$this->canAccessProjectTenant($user, $project)) {
+        if (! $this->canAccessProjectTenant($user, $project)) {
             return Response::denyAsNotFound();
         }
 
-        return $this->activeMembership($project, (int)$user->getKey()) !== null
+        return $this->activeMembership($project, (int) $user->getKey()) instanceof ProjectMember
             ? Response::allow()
             : Response::deny('An active project membership is required.');
     }
@@ -138,11 +140,11 @@ class TimesheetPolicy
     {
         $project = $this->projectFor($timesheet);
 
-        if ($project === null || !$this->canAccessProjectTenant($user, $project)) {
+        if (! $project instanceof Project || ! $this->canAccessProjectTenant($user, $project)) {
             return Response::denyAsNotFound();
         }
 
-        if (!in_array(
+        if (! in_array(
             $timesheet->status,
             [TimesheetStatus::REJECTED, TimesheetStatus::DRAFT],
             true)) {
@@ -153,7 +155,7 @@ class TimesheetPolicy
             return Response::deny('Only active project membership is required.');
         }
 
-        return $this->activeMembership($project, (int)$user->getKey()) !== null
+        return $this->activeMembership($project, (int) $user->getKey()) instanceof ProjectMember
             ? Response::allow()
             : Response::deny('An active project membership is required.');
     }
@@ -166,15 +168,12 @@ class TimesheetPolicy
     /**
      * Check that timesheet belongs to certain project
      * and project belongs to certain workspace
-     *
-     * @param Timesheet $timesheet
-     * @return Project|null
      */
     private function projectFor(Timesheet $timesheet): ?Project
     {
-        $project = $timesheet->project;
+        $project = Project::query()->whereKey($timesheet->project_id)->first();
 
-        if (!$project instanceof Project) {
+        if (! $project instanceof Project) {
             return null;
         }
 
@@ -187,30 +186,27 @@ class TimesheetPolicy
 
     /**
      * Check if admin have access to project
-     *
-     * @param User $user
-     * @param Project $project
-     * @return bool
      */
     private function canAccessProjectTenant(User $user, Project $project): bool
     {
-        if (!$user->isAdmin()) {
+        if (! $user->isAdmin()) {
             return $user->workspace_id !== null
                 && $user->workspace_id === $project->workspace_id;
         }
 
-        //check if project has workspace that has organization that belongs to user with owner relation
+        // check if project has workspace that has organization that belongs to user with owner relation
         return $project->workspace()
             ->whereHas(
                 'organization',
-                fn(Builder $builder): Builder => $builder->whereBelongsTo($user, 'owner')
+                fn (Builder $builder): Builder => $builder->whereBelongsTo($user, 'owner')
             )
             ->exists();
     }
 
     private function activeMembership(Project $project, int $userId): ?ProjectMember
     {
-        return $project->memberships()
+        return ProjectMember::query()
+            ->whereBelongsTo($project)
             ->where('user_id', $userId)
             ->where('active', true)
             ->first();

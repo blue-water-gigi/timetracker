@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Requests\Project\ProjectMember;
 
 use App\Enums\ProjectRole;
+use App\Models\Organization;
+use App\Models\Project;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
@@ -27,8 +29,11 @@ class StoreProjectMember extends FormRequest
      */
     public function rules(): array
     {
+        /** @var Project $project */
         $project = $this->route('project');
-        $ownerId = $project->workspace->organization->owner_id;
+        $ownerId = Organization::query()
+            ->whereRelation('workspaces', 'id', $project->workspace_id)
+            ->value('owner_id');
 
         return [
             'project_id' => ['prohibited'],

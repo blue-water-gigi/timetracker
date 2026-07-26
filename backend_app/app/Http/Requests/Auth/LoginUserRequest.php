@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 
-class LoginUserRequest extends FormRequest
+class LoginUserRequest extends AuthFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,7 +24,7 @@ class LoginUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email'],
+            'email' => ['required', 'email', 'string', 'max:255'],
             'password' => ['required', 'string'],
         ];
     }

@@ -46,4 +46,10 @@ class LoginController extends Controller
 
         return response()->json(status: 204);
     }
+
+    public function me(Request $request): JsonResource
+    {
+        return new UserResource(
+            $request->user()?->load(['workspace', 'ownedOrganizations']));
+    }
 }

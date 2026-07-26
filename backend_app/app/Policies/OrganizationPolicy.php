@@ -15,13 +15,9 @@ class OrganizationPolicy
      */
     public function viewAny(User $user): Response
     {
-        if (!$this->isOwner($user, $user->ownedOrganizations)) {
-            return Response::denyAsNotFound();
-        }
-
         return $user->isAdmin()
             ? Response::allow()
-            : Response::deny('You do not have permission to view organizations.');
+            : Response::deny('You do not have permission to do this action.');
     }
 
     /**
@@ -29,13 +25,9 @@ class OrganizationPolicy
      */
     public function view(User $user, Organization $organization): Response
     {
-        if (!$this->isOwner($user, $user->ownedOrganizations)) {
-            return Response::denyAsNotFound();
-        }
-
-        return $user->isAdmin()
+        return $this->isOwner($user, $organization)
             ? Response::allow()
-            : Response::deny('You do not have permission to do this action.');
+            : Response::denyAsNotFound();
     }
 
     /**
@@ -43,10 +35,6 @@ class OrganizationPolicy
      */
     public function create(User $user): Response
     {
-        if (!$this->isOwner($user, $user->ownedOrganizations)) {
-            return Response::denyAsNotFound();
-        }
-
         return $user->isAdmin()
             ? Response::allow()
             : Response::deny('You do not have permission to do this action.');
@@ -68,8 +56,8 @@ class OrganizationPolicy
         return $this->view($user, $organization);
     }
 
-    public function isOwner(User $user, Organization $organization): bool
+    private function isOwner(User $user, Organization $organization): bool
     {
-        return $user->getKeyName() === $organization->getForeignKey();
+        return $user->getKey() === $organization->owner_id;
     }
 }

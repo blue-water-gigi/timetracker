@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
-class RegisterEmployeeRequest extends FormRequest
+class RegisterEmployeeRequest extends AuthFormRequest
 {
     public function authorize(): bool
     {

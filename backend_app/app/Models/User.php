@@ -6,7 +6,9 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\SystemRole;
+use App\Support\EmailNormalizer;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -14,7 +16,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-/** @property SystemRole $system_role */
+/**
+ * @property string $email
+ * @property SystemRole $system_role
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -84,5 +89,12 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->system_role === SystemRole::ADMINISTRATOR;
+    }
+
+    protected function email(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $email): string => EmailNormalizer::normalize($email)
+        );
     }
 }

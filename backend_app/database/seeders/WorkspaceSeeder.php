@@ -28,7 +28,5 @@ class WorkspaceSeeder extends Seeder
             ->for($organizations->last())
             ->withJoinCode('development-workspace-three')
             ->create(['name' => 'Department 1', 'slug' => 'department-1']);
-
-        Workspace::factory(30)->create();
     }
 }

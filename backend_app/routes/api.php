@@ -11,26 +11,24 @@ use App\Http\Controllers\Project\ProjectMember\ProjectMemberController;
 use App\Http\Controllers\Timesheet\TimeEntryController;
 use App\Http\Controllers\Timesheet\TimesheetController;
 use App\Http\Controllers\Workspace\WorkspaceController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('health', fn (Request $request) => response()->json([
+Route::get('health', fn () => response()->json([
     'status' => 'ok',
     'app' => config('app.version'),
-    'database' => 'ok',
-    'redis' => 'ok',
-    'queue' => 'ok',
-    'storage' => 'ok',
-], 201));
+]));
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::delete('logout', [LoginController::class, 'destroy'])->name('logout');
+    Route::get('me', [LoginController::class, 'me'])->name('me');
 
     Route::apiResource('organizations', OrganizationController::class);
     Route::apiResource('organizations/{organization}/workspaces', WorkspaceController::class)
         ->scoped();
+
     Route::post('organizations/{organization}/workspaces/{workspace}/rotate-join-code', [WorkspaceController::class, 'rotateJoinCode'])
-        ->scopeBindings();
+        ->scopeBindings()
+        ->middleware('throttle:rotateJoinCode');
 
     Route::apiResource('workspaces/{workspace}/projects', ProjectController::class)
         ->scoped();
@@ -41,7 +39,8 @@ Route::middleware('auth:sanctum')->group(function () {
         ->scoped();
 
     Route::apiResource('workspaces/{workspace}/projects/{project}/timesheets', TimesheetController::class)
-        ->scoped();
+        ->scoped()
+        ->except(['destroy']);
 
     Route::group(['controller' => TimesheetController::class], function () {
         Route::post('workspaces/{workspace}/projects/{project}/timesheets/{timesheet}/submit', 'submit');
@@ -55,8 +54,10 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::middleware('guest.api')->group(function () {
-    Route::post('login', [LoginController::class, 'store'])->name('login');
+    Route::post('login', [LoginController::class, 'store'])->name('login')->middleware('throttle:login');
 
-    Route::post('register/employee', EmployeeRegistrationController::class)->name('register.employee');
-    Route::post('register/admin', AdminRegistrationController::class)->name('register.admin');
+    Route::middleware(['throttle:register'])->group(function () {
+        Route::post('register/employee', EmployeeRegistrationController::class)->name('register.employee');
+        Route::post('register/admin', AdminRegistrationController::class)->name('register.admin');
+    });
 });

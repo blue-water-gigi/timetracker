@@ -27,9 +27,9 @@ class OrganizationCollection extends ResourceCollection
             'meta' => [
                 'resource' => 'organizations',
                 'includes' => [
-                    'workspaces',
-                    'workspaces_count',
-                    'users_count',
+                    'owner',
+                    'workspacesCount',
+                    'usersCount',
                 ],
             ],
         ];

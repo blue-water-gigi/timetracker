@@ -25,15 +25,11 @@ class ProjectCollection extends ResourceCollection
     {
         return [
             'meta' => [
-                'resource' => 'project',
-                'multiTenant' => true,
-                'filters' => [
-                    'search' => $request->query('search'),
-                    'name' => $request->query('name'),
-                ],
+                'resource' => 'projects',
                 'includes' => [
                     'workspace',
-                    'memberships',
+                    'createdBy',
+                    'updatedBy',
                     'membershipsCount',
                 ],
             ],

@@ -10,38 +10,33 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
-/** @property Carbon|null $archived_at */
 class Organization extends Model
 {
     /** @use HasFactory<OrganizationFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
         'slug',
-        'archived_at',
     ];
 
-    /** @return array<string, string> */
-    protected function casts(): array
-    {
-        return [
-            'archived_at' => 'datetime',
-        ];
-    }
-
+    /** @return BelongsTo<User, $this> */
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    /** @return HasMany<Workspace, $this> */
     public function workspaces(): HasMany
     {
         return $this->hasMany(Workspace::class);
     }
 
+    /** @return HasManyThrough<User, Workspace, $this> */
     public function users(): HasManyThrough
     {
         return $this->hasManyThrough(
@@ -50,5 +45,17 @@ class Organization extends Model
             'organization_id',
             'workspace_id',
         );
+    }
+
+    /** @throws Throwable */
+    public function archive(): void
+    {
+        DB::transaction(function (): void {
+            foreach ($this->workspaces()->get() as $workspace) {
+                $workspace->archive();
+            }
+
+            $this->deleteOrFail();
+        });
     }
 }

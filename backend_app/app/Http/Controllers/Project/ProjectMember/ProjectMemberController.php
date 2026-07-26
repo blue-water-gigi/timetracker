@@ -30,6 +30,7 @@ class ProjectMemberController extends Controller
         return new ProjectMemberCollection(
             $project->memberships()
                 ->with(['project', 'user'])
+                ->latest()
                 ->paginate(10)
                 ->withQueryString()
         );
@@ -44,12 +45,10 @@ class ProjectMemberController extends Controller
     {
         Gate::authorize('create', [ProjectMember::class, $project]);
 
-        $member = DB::transaction(function () use ($request, $project) {
-            $member = $project->memberships()->make($request->validated());
-
-            $member->forceFill([
-                'approval_rank' => $member->project_role->approvalRank(),
-            ])->saveOrFail();
+        $member = DB::transaction(function () use ($request, $project): ProjectMember {
+            $member = new ProjectMember($request->validated());
+            $member->project()->associate($project);
+            $member->saveOrFail();
 
             return $member;
         });

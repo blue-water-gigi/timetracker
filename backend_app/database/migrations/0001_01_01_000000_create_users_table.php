@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\SystemRole;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('first_name', 50)->nullable();
             $table->string('last_name', 50)->nullable();
-            $table->enum('system_role', array_column(SystemRole::cases(), 'value'))->default(SystemRole::EMPLOYEE->value);
+            $table->enum('system_role', ['admin', 'employee'])->default('employee');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

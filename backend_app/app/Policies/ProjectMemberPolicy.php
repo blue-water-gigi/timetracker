@@ -17,7 +17,7 @@ class ProjectMemberPolicy
      */
     public function viewAny(User $user, Project $project): Response
     {
-        $canView = ($user->isAdmin() && $project->workspace->organization->owner_id === $user->getKey())
+        $canView = $this->ownsProject($user, $project)
             || $user->projectMemberships()
                 ->whereBelongsTo($project)
                 ->where('active', true)
@@ -33,11 +33,10 @@ class ProjectMemberPolicy
      */
     public function view(User $user, ProjectMember $membership): Response
     {
-        $canView = ($user->isAdmin() && $user->ownedOrganizations()->exists())
-            || $user->projectMemberships()->where('active', true)->exists();
+        $project = $this->projectFor($membership);
 
-        return $canView
-            ? Response::allow()
+        return $project instanceof Project
+            ? $this->viewAny($user, $project)
             : Response::denyAsNotFound();
     }
 
@@ -56,7 +55,11 @@ class ProjectMemberPolicy
      */
     public function update(User $user, ProjectMember $membership): Response
     {
-        return $this->create($user, $membership->project);
+        $project = $this->projectFor($membership);
+
+        return $project instanceof Project
+            ? $this->create($user, $project)
+            : Response::denyAsNotFound();
     }
 
     /**
@@ -67,10 +70,25 @@ class ProjectMemberPolicy
         return $this->update($user, $membership);
     }
 
+    private function projectFor(ProjectMember $membership): ?Project
+    {
+        return Project::query()->whereKey($membership->project_id)->first();
+    }
+
+    private function ownsProject(User $user, Project $project): bool
+    {
+        return $user->isAdmin()
+            && $project->workspace()
+                ->whereRelation('organization', 'owner_id', $user->getKey())
+                ->exists();
+    }
+
     private function canManage(User $user, Project $project): bool
     {
         if ($user->isAdmin()) {
-            return $project->workspace->organization->owner_id === $user->getKey();
+            return $project->workspace()
+                ->whereRelation('organization', 'owner_id', $user->getKey())
+                ->exists();
         }
 
         return $project->memberships()

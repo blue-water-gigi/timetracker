@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\Project;
-use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -17,8 +16,8 @@ class ProjectFactory extends Factory
     {
         return [
             'workspace_id' => Workspace::factory(),
-            'created_by_user_id' => User::factory()->administrator(),
-            'updated_by_user_id' => User::factory()->administrator(),
+            'created_by_user_id' => fn (array $attributes): int => $this->ownerIdForWorkspace($attributes),
+            'updated_by_user_id' => fn (array $attributes): int => $this->ownerIdForWorkspace($attributes),
             'name' => fake()->catchPhrase(),
             'description' => fake()->optional()->sentence(),
             'slug' => fake()->unique()->slug(),
@@ -26,5 +25,13 @@ class ProjectFactory extends Factory
             'period_start' => today()->startOfMonth(),
             'period_end' => today()->endOfMonth(),
         ];
+    }
+
+    /** @param array{workspace_id: int} $attributes */
+    private function ownerIdForWorkspace(array $attributes): int
+    {
+        $workspace = Workspace::query()->findOrFail($attributes['workspace_id']);
+
+        return (int) $workspace->organization()->value('owner_id');
     }
 }
