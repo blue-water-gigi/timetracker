@@ -1,4 +1,21 @@
 services:
+  frontend:
+    build:
+      context: ./docker/frontend
+      dockerfile: dev.Dockerfile
+    container_name: frontend
+    environment:
+      VITE_API_PROXY_TARGET: http://nginx
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend_app:/app
+    user: "1000:1000"
+    networks:
+      - frontend_app
+    depends_on:
+      - nginx
+
   nginx:
     image: nginx:1.30-alpine
     volumes:
@@ -17,11 +34,11 @@ services:
     build:
       context: ./
       dockerfile: ./docker/backend/php/dev.Dockerfile
+    environment:
+      SANCTUM_STATEFUL_DOMAINS: localhost:5173,127.0.0.1:5173,localhost:8000,127.0.0.1:8000
     networks:
       - backend_app
     container_name: php
-    ports:
-      - "5173:5173"
     volumes:
       - ./backend_app:/app/
       - ./docker/backend/php/dev.custom.ini:/usr/local/etc/php/conf.d/dev.custom.ini
