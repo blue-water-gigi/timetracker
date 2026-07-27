@@ -8,11 +8,14 @@ namespace App\Models;
 use App\Enums\SystemRole;
 use App\Support\EmailNormalizer;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -23,7 +26,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /** @var list<string> */
     protected $fillable = [
@@ -94,7 +97,13 @@ class User extends Authenticatable
     protected function email(): Attribute
     {
         return Attribute::make(
-            set: fn (string $email): string => EmailNormalizer::normalize($email)
+            set: fn(string $email): string => EmailNormalizer::normalize($email)
         );
+    }
+
+    #[Scope]
+    public function active(Builder $query): Builder
+    {
+        return $query->where('deleted_at', null);
     }
 }

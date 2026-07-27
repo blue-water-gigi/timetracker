@@ -31,17 +31,17 @@ class UserFactory extends Factory
         ];
     }
 
-    public function administrator(): static
+    public function administrator(?int $workspaceId = null): static
     {
-        return $this->state(fn (): array => [
-            'workspace_id' => null,
+        return $this->state(fn(): array => [
+            'workspace_id' => $workspaceId,
             'system_role' => SystemRole::ADMINISTRATOR,
         ]);
     }
 
     public function forWorkspace(Workspace $workspace): static
     {
-        return $this->state(fn (): array => [
+        return $this->state(fn(): array => [
             'workspace_id' => $workspace->id,
             'system_role' => SystemRole::EMPLOYEE,
         ]);
@@ -49,7 +49,7 @@ class UserFactory extends Factory
 
     public function unverified(): static
     {
-        return $this->state(fn (): array => [
+        return $this->state(fn(): array => [
             'email_verified_at' => null,
         ]);
     }

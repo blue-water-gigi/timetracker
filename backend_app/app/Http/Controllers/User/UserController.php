@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
@@ -7,9 +9,9 @@ use App\Http\Resources\User\UserResource;
 use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
+use Throwable;
 
 class UserController extends Controller
 {
@@ -20,7 +22,7 @@ class UserController extends Controller
     {
         Gate::authorize('viewAny', [User::class, $workspace]);
 
-        $users = $workspace->users()->get();
+        $users = $workspace->users()->active()->get();
 
         return UserResource::collection(
             $users->load('workspace')->loadCount('projects')
@@ -34,14 +36,19 @@ class UserController extends Controller
     {
         Gate::authorize('view', [$user, $workspace]);
 
-
-        return new UserResource($user->load(['workspace', 'ownedOrganizations', 'projects', 'projectMemberships', 'projectsCount']));
+        return new UserResource($user->load(['workspace', 'ownedOrganizations', 'projects', 'projectMemberships'])
+            ->loadCount('projects'));
     }
 
-    public function destroy(): JsonResponse
+    /**
+     * @throws Throwable
+     */
+    public function destroy(Workspace $workspace, User $user): JsonResponse
     {
-        //todo make soft delete on Users.
-        //admin can 'archive' user
-        // nobody else can
+        Gate::authorize('delete', [$user, $workspace]);
+
+        $user->deleteOrFail();
+
+        return response()->json(status: 204);
     }
 }

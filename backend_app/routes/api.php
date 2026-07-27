@@ -10,6 +10,7 @@ use App\Http\Controllers\Project\ProjectController;
 use App\Http\Controllers\Project\ProjectMember\ProjectMemberController;
 use App\Http\Controllers\Timesheet\TimeEntryController;
 use App\Http\Controllers\Timesheet\TimesheetController;
+use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Workspace\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +52,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::apiResource('workspaces/{workspace}/projects/{project}/timesheets/{timesheet}/entries', TimeEntryController::class)
         ->scoped()
         ->except(['show', 'index']);
+
+    Route::apiResource('/workspaces/{workspace}/users', UserController::class)
+        ->only(['index', 'show', 'destroy'])
+        ->scoped();
 });
 
 Route::middleware('guest.api')->group(function () {

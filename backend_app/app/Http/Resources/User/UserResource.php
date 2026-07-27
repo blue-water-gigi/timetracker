@@ -28,6 +28,7 @@ class UserResource extends JsonResource
             'workspace' => new WorkspaceResource($this->whenLoaded('workspace')),
             'ownedOrganizations' => new OrganizationCollection($this->whenLoaded('ownedOrganizations')),
             'projects' => new ProjectCollection($this->whenLoaded('projects')),
+            'projectsCount' => $this->whenCounted('projects'),
             'projectMemberships' => new ProjectMemberCollection($this->whenLoaded('projectMemberships')),
             'timesheets' => new TimesheetCollection($this->whenLoaded('timesheets')),
             'timestamps' => [
