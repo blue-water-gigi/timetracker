@@ -63,7 +63,7 @@ class Timesheet extends Model
         if ($user->isAdmin()) {
             return $query->whereHas(
                 'workspace.organization',
-                fn (Builder $builder): Builder => $builder->where('owner_id', $user->getKey())
+                fn(Builder $builder): Builder => $builder->where('owner_id', $user->getKey())
             );
         }
 
@@ -89,7 +89,7 @@ class Timesheet extends Model
                 $query->where('status', TimesheetStatus::SUBMITTED)
                     ->whereHas(
                         'user.projectMemberships',
-                        fn (Builder $builder) => $builder->whereBelongsTo($project)
+                        fn(Builder $builder) => $builder->whereBelongsTo($project)
                             ->where('active', true)
                             ->where('approval_rank', '<', $viewerMembership->approval_rank->value)
                     );
@@ -98,7 +98,7 @@ class Timesheet extends Model
     }
 
     /**
-     * @param  array{period_start: string, period_end: string}  $attributes
+     * @param array{period_start: string, period_end: string} $attributes
      *
      * @throws Throwable
      */
@@ -116,7 +116,7 @@ class Timesheet extends Model
             ->where('active', true)
             ->exists();
 
-        if (! $isActiveMember) {
+        if (!$isActiveMember) {
             throw ProjectMembershipRequiredException::make();
         }
 
@@ -134,7 +134,7 @@ class Timesheet extends Model
     }
 
     /**
-     * @param  array{work_date: string, description?: string|null, hours: numeric-string|int|float, is_overtime?: bool}  $attributes
+     * @param array{work_date: string, description?: string|null, hours: numeric-string|int|float, is_overtime?: bool} $attributes
      *
      * @throws Throwable
      */
@@ -148,13 +148,13 @@ class Timesheet extends Model
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if (! $workDate->betweenIncluded($timesheet->period_start, $timesheet->period_end)) {
+            if (!$workDate->betweenIncluded($timesheet->period_start, $timesheet->period_end)) {
                 throw TimeEntryOutsideTimesheetPeriodException::make($timesheet->period_start, $timesheet->period_end);
             }
 
             $allowedStatuses = [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED];
 
-            if (! in_array($timesheet->status, $allowedStatuses, true)) {
+            if (!in_array($timesheet->status, $allowedStatuses, true)) {
                 throw TimesheetAlreadyProcessedException::make($timesheet->status, $allowedStatuses);
             }
 
@@ -193,13 +193,13 @@ class Timesheet extends Model
                 ? CarbonImmutable::parse($attributes['work_date'])
                 : CarbonImmutable::parse($timeEntry->work_date);
 
-            if (! $workDate->betweenIncluded($timesheet->period_start, $timesheet->period_end)) {
+            if (!$workDate->betweenIncluded($timesheet->period_start, $timesheet->period_end)) {
                 throw TimeEntryOutsideTimesheetPeriodException::make($timesheet->period_start, $timesheet->period_end);
             }
 
             $allowedStatuses = [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED];
 
-            if (! in_array($timesheet->status, $allowedStatuses, true)) {
+            if (!in_array($timesheet->status, $allowedStatuses, true)) {
                 throw TimesheetAlreadyProcessedException::make($timesheet->status, $allowedStatuses);
             }
 
@@ -210,7 +210,7 @@ class Timesheet extends Model
     }
 
     /**
-     * @param  array{period_start?: string, period_end?: string}  $attributes
+     * @param array{period_start?: string, period_end?: string} $attributes
      *
      * @throws Throwable
      */
@@ -228,7 +228,7 @@ class Timesheet extends Model
                 TimesheetStatus::REJECTED,
             ];
 
-            if (! in_array($timesheet->status, $allowedStatuses, true)) {
+            if (!in_array($timesheet->status, $allowedStatuses, true)) {
                 throw TimesheetAlreadyProcessedException::make(
                     $timesheet->status,
                     $allowedStatuses,
@@ -301,7 +301,7 @@ class Timesheet extends Model
 
             $allowedStatuses = [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED];
 
-            if (! in_array($timesheet->status, $allowedStatuses, true)) {
+            if (!in_array($timesheet->status, $allowedStatuses, true)) {
                 throw TimesheetAlreadyProcessedException::make($timesheet->status, $allowedStatuses);
             }
 
@@ -323,7 +323,7 @@ class Timesheet extends Model
 
             $allowedStatuses = [TimesheetStatus::DRAFT, TimesheetStatus::REJECTED];
 
-            if (! in_array($timesheet->status, $allowedStatuses, true)) {
+            if (!in_array($timesheet->status, $allowedStatuses, true)) {
                 throw TimesheetAlreadyProcessedException::make($timesheet->status, $allowedStatuses);
             }
 
@@ -356,7 +356,7 @@ class Timesheet extends Model
 
             $allowedStatuses = [TimesheetStatus::APPROVED, TimesheetStatus::REJECTED];
 
-            if (! in_array($decision, $allowedStatuses, true)) {
+            if (!in_array($decision, $allowedStatuses, true)) {
                 throw NotValidStatusDecisionException::make($decision, $allowedStatuses);
             }
 

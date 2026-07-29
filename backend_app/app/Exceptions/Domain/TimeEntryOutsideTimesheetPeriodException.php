@@ -8,9 +8,17 @@ use Carbon\CarbonInterface;
 
 final class TimeEntryOutsideTimesheetPeriodException extends TimesheetPeriodConflict
 {
-    public static function make(CarbonInterface $periodStart, CarbonInterface $periodEnd): self
+    public static function make(
+        CarbonInterface $periodStart,
+        CarbonInterface $periodEnd,
+    ): self
     {
-        return new self('The work date must be within the timesheet period.', $periodStart, $periodEnd);
+        return new self(
+            'The work date must be within the timesheet period.',
+            $periodStart,
+            $periodEnd,
+            'work_date',
+        );
     }
 
     public function errorCode(): string

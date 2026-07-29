@@ -8,9 +8,17 @@ use Carbon\CarbonInterface;
 
 class InvalidTimesheetPeriodException extends TimesheetPeriodConflict
 {
-    public static function make(CarbonInterface $periodStart, CarbonInterface $periodEnd): TimesheetPeriodConflict
+    public static function make(
+        CarbonInterface $periodStart,
+        CarbonInterface $periodEnd,
+        string          $field = 'period_end'
+    ): TimesheetPeriodConflict
     {
-        return new self('Invalid timesheet period.', $periodStart, $periodEnd);
+        return new self(
+            'The period start must not be after the period end.',
+            $periodStart, $periodEnd,
+            $field
+        );
     }
 
     public function errorCode(): string

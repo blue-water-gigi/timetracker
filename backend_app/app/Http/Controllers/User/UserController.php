@@ -22,7 +22,7 @@ class UserController extends Controller
     {
         Gate::authorize('viewAny', [User::class, $workspace]);
 
-        $users = $workspace->users()->active()->get();
+        $users = $workspace->users()->get();
 
         return UserResource::collection(
             $users->load('workspace')->loadCount('projects')

@@ -8,9 +8,18 @@ use Carbon\CarbonInterface;
 
 class TimesheetPeriodContainsEntriesException extends TimesheetPeriodConflict
 {
-    public static function make(CarbonInterface $periodStart, CarbonInterface $periodEnd): TimesheetPeriodConflict
+    public static function make(
+        CarbonInterface $periodStart,
+        CarbonInterface $periodEnd,
+        string          $field,
+    ): TimesheetPeriodConflict
     {
-        return new self('Invalid time entry period.', $periodStart, $periodEnd);
+        return new self(
+            'Invalid time entry period.',
+            $periodStart,
+            $periodEnd,
+            $field,
+        );
     }
 
     public function errorCode(): string
