@@ -28,8 +28,8 @@ readonly class ChangeTimesheetPeriodData
         $hasPeriodEnd = array_key_exists('period_end', $attributes);
 
         return new self(
-            $hasPeriodStart ? $attributes['period_start'] : null,
-            $hasPeriodEnd ? $attributes['period_end'] : null,
+            $hasPeriodStart ? CarbonImmutable::parse($attributes['period_start'])->startOfDay() : null,
+            $hasPeriodEnd ? CarbonImmutable::parse($attributes['period_end'])->endOfDay() : null,
             $hasPeriodStart,
             $hasPeriodEnd,
         );

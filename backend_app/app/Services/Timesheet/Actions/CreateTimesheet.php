@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\Timesheet;
 use App\Models\User;
 use App\Services\Timesheet\Data\TimesheetPeriodData;
+use DomainException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -49,6 +50,8 @@ final readonly class CreateTimesheet
             });
         } catch (UniqueConstraintViolationException) {
             throw DuplicateTimesheetPeriodException::make();
+        } catch (DomainException $exception) {
+            throw $exception;
         } catch (Throwable $th) {
             throw new TransactionErrorException(
                 'Error creating timesheet'.$th->getMessage(),

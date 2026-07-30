@@ -31,8 +31,8 @@ readonly class CreateTimeEntryData implements Arrayable
     {
         return new self(
             CarbonImmutable::parse($attributes['work_date'])->startOfDay(),
-            $attributes['description'],
-            $attributes['hours'],
+            $attributes['description'] ?? null,
+            (string) $attributes['hours'],
             (bool) ($attributes['is_overtime'] ?? false),
         );
     }

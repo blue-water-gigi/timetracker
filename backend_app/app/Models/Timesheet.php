@@ -53,7 +53,7 @@ class Timesheet extends Model
         if ($user->isAdmin()) {
             return $query->whereHas(
                 'workspace.organization',
-                fn(Builder $builder): Builder => $builder->where('owner_id', $user->getKey())
+                fn (Builder $builder): Builder => $builder->where('owner_id', $user->getKey())
             );
         }
 
@@ -79,7 +79,7 @@ class Timesheet extends Model
                 $query->where('status', TimesheetStatus::SUBMITTED)
                     ->whereHas(
                         'user.projectMemberships',
-                        fn(Builder $builder) => $builder->whereBelongsTo($project)
+                        fn (Builder $builder) => $builder->whereBelongsTo($project)
                             ->where('active', true)
                             ->where('approval_rank', '<', $viewerMembership->approval_rank->value)
                     );

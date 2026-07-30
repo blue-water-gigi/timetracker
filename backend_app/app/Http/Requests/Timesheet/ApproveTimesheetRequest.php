@@ -28,4 +28,11 @@ class ApproveTimesheetRequest extends FormRequest
             'review_comment' => ['nullable', 'sometimes', 'string', 'max:500'],
         ];
     }
+
+    public function reviewComment(): ?string
+    {
+        $comment = $this->validated('review_comment');
+
+        return is_string($comment) ? $comment : null;
+    }
 }

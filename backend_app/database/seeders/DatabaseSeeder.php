@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             ProjectMemberSeeder::class,
             TimesheetSeeder::class,
             TimeEntrySeeder::class,
+            TimesheetWorkflowSeeder::class,
         ]);
     }
 }

@@ -11,6 +11,8 @@ use App\Services\Timesheet\Data\CreateTimeEntryData;
 use App\Services\Timesheet\TimesheetGuard;
 use App\Services\Timesheet\TimesheetLock;
 use DB;
+use DomainException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Throwable;
 
 final readonly class AddTimeEntry
@@ -33,6 +35,7 @@ final readonly class AddTimeEntry
                 $this->guard->ensureWorkDateInsidePeriod($locked, $data->workDate);
                 $this->guard->ensureValidHours($data->hours);
 
+                /** @var TimeEntry $entry */
                 $entry = $locked->entries()
                     ->make($data->toArray());
 
@@ -40,6 +43,8 @@ final readonly class AddTimeEntry
 
                 return $entry;
             });
+        } catch (DomainException|ModelNotFoundException $exception) {
+            throw $exception;
         } catch (Throwable $th) {
             throw new TransactionErrorException(
                 'Error creating time entry: '.$th->getMessage(),

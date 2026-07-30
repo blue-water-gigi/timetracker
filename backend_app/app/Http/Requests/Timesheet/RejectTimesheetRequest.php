@@ -28,4 +28,9 @@ class RejectTimesheetRequest extends FormRequest
             'review_comment' => ['required', 'string', 'max:500'],
         ];
     }
+
+    public function reviewComment(): string
+    {
+        return (string) $this->validated('review_comment');
+    }
 }

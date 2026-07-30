@@ -34,6 +34,13 @@ class ProjectMemberFactory extends Factory
         ]);
     }
 
+    public function inactive(): static
+    {
+        return $this->state(fn (): array => [
+            'active' => false,
+        ]);
+    }
+
     /** @param array{project_id: int} $attributes */
     private function userIdForProject(array $attributes): int
     {

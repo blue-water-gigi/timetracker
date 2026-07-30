@@ -109,7 +109,11 @@ class TimesheetController extends Controller
     {
         Gate::authorize('approve', $timesheet);
 
-        $timesheet = $this->timesheetService->approve($request->user(), $timesheet, $request->validated());
+        $timesheet = $this->timesheetService->approve(
+            $request->user(),
+            $timesheet,
+            $request->reviewComment(),
+        );
 
         return new TimesheetResource($timesheet->load(['project', 'user', 'entries', 'reviewedBy']));
     }
@@ -125,7 +129,11 @@ class TimesheetController extends Controller
     {
         Gate::authorize('reject', $timesheet);
 
-        $timesheet = $this->timesheetService->reject($request->user(), $timesheet, $request->validated());
+        $timesheet = $this->timesheetService->reject(
+            $request->user(),
+            $timesheet,
+            $request->reviewComment(),
+        );
 
         return new TimesheetResource($timesheet->load(['project', 'user', 'entries', 'reviewedBy']));
     }

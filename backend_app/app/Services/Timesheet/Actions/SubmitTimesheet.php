@@ -10,6 +10,8 @@ use App\Models\Timesheet;
 use App\Services\Timesheet\TimesheetGuard;
 use App\Services\Timesheet\TimesheetLock;
 use DB;
+use DomainException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 use Throwable;
 
@@ -43,6 +45,8 @@ final readonly class SubmitTimesheet
 
                 return $locked;
             });
+        } catch (DomainException|ModelNotFoundException $exception) {
+            throw $exception;
         } catch (Throwable $th) {
             throw new TransactionErrorException(
                 'Error submitting timesheet: '.$th->getMessage(),

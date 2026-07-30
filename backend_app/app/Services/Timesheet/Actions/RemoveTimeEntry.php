@@ -10,6 +10,8 @@ use App\Models\Timesheet;
 use App\Services\Timesheet\TimesheetGuard;
 use App\Services\Timesheet\TimesheetLock;
 use DB;
+use DomainException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Throwable;
 
 final readonly class RemoveTimeEntry
@@ -33,6 +35,8 @@ final readonly class RemoveTimeEntry
 
                 $lockedEntry->deleteOrFail();
             });
+        } catch (DomainException|ModelNotFoundException $exception) {
+            throw $exception;
         } catch (Throwable $th) {
             throw new TransactionErrorException(
                 'Error deleting time entry: '.$th->getMessage(),

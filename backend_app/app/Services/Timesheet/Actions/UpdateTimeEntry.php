@@ -12,6 +12,8 @@ use App\Services\Timesheet\TimesheetGuard;
 use App\Services\Timesheet\TimesheetLock;
 use Carbon\CarbonImmutable;
 use DB;
+use DomainException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Throwable;
 
 final readonly class UpdateTimeEntry
@@ -37,7 +39,7 @@ final readonly class UpdateTimeEntry
 
                 $this->guard->ensureEditable($lockedTimesheet);
 
-                $workDate = $data->hasWorkDate ?: CarbonImmutable::instance($lockedEntry->work_date);
+                $workDate = $data->workDate ?? CarbonImmutable::instance($lockedEntry->work_date);
                 $this->guard->ensureWorkDateInsidePeriod($lockedTimesheet, $workDate);
 
                 if ($data->hasHours && $data->hours !== null) {
@@ -52,6 +54,8 @@ final readonly class UpdateTimeEntry
 
                 return $lockedEntry;
             });
+        } catch (DomainException|ModelNotFoundException $exception) {
+            throw $exception;
         } catch (Throwable $th) {
             throw new TransactionErrorException(
                 'Error updating time entry: '.$th->getMessage(),

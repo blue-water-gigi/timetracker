@@ -22,23 +22,23 @@ readonly class UpdateTimeEntryData implements Arrayable
 
     /**
      * @param array{
-     * work_date:string,
+     * work_date?:string,
      * description?:string|null,
-     * hours:numeric-string|int|float,
+     * hours?:numeric-string|int|float,
      * is_overtime?:bool} $attributes
      */
     public static function fromValidated(array $attributes): self
     {
-        $hasWorkDate = array_key_exists('workDate', $attributes);
+        $hasWorkDate = array_key_exists('work_date', $attributes);
         $hasDescription = array_key_exists('description', $attributes);
         $hasHours = array_key_exists('hours', $attributes);
-        $hasIsOvertime = array_key_exists('isOvertime', $attributes);
+        $hasIsOvertime = array_key_exists('is_overtime', $attributes);
 
         return new self(
-            $hasWorkDate ? CarbonImmutable::parse($attributes['workDate'])->startOfDay() : null,
+            $hasWorkDate ? CarbonImmutable::parse($attributes['work_date'])->startOfDay() : null,
             $hasDescription ? $attributes['description'] : null,
-            $hasHours ? $attributes['hours'] : null,
-            $hasIsOvertime ? $attributes['isOvertime'] : null,
+            $hasHours ? (string) $attributes['hours'] : null,
+            $hasIsOvertime ? (bool) $attributes['is_overtime'] : null,
             $hasWorkDate,
             $hasDescription,
             $hasHours,
@@ -54,7 +54,7 @@ readonly class UpdateTimeEntryData implements Arrayable
         $attributes = [];
 
         if ($this->hasWorkDate) {
-            $attributes['workDate'] = $this->workDate->toDateString();
+            $attributes['work_date'] = $this->workDate?->toDateString();
         }
 
         if ($this->hasDescription) {
@@ -66,7 +66,7 @@ readonly class UpdateTimeEntryData implements Arrayable
         }
 
         if ($this->hasIsOvertime) {
-            $attributes['isOvertime'] = $this->isOvertime;
+            $attributes['is_overtime'] = $this->isOvertime;
         }
 
         return $attributes;

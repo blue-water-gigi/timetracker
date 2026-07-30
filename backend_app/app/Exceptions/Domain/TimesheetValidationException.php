@@ -14,7 +14,7 @@ abstract class TimesheetValidationException extends DomainException implements S
         parent::__construct($message);
     }
 
-    abstract protected function errorCode(): string;
+    abstract public function errorCode(): string;
 
     final public function errors(): array
     {

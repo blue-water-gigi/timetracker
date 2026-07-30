@@ -26,7 +26,8 @@ it('accepts zero hours and rejects dates outside the timesheet period', function
         'work_date' => $timesheet->period_end->addDay()->toDateString(),
         'hours' => 8,
     ])->assertUnprocessable()
-        ->assertJsonValidationErrors('work_date');
+        ->assertJsonPath('data.errorCode', 'time_entry_outside_timesheet_period')
+        ->assertJsonPath('data.errors.work_date.0', 'The work date must be within the timesheet period.');
 });
 
 it('returns the freshly updated entry and supports nullable descriptions', function () {
@@ -44,12 +45,17 @@ it('returns the freshly updated entry and supports nullable descriptions', funct
         ->patchJson($url, [
             'description' => null,
             'hours' => 3.5,
+            'work_date' => $timesheet->period_start->addDay()->toDateString(),
+            'is_overtime' => true,
         ])->assertOk()
         ->assertJsonPath('data.hours', '3.50')
-        ->assertJsonMissingPath('data.description');
+        ->assertJsonMissingPath('data.description')
+        ->assertJsonPath('data.isOvertime', true);
 
     expect($entry->refresh()->description)->toBeNull()
-        ->and($entry->hours)->toBe('3.50');
+        ->and($entry->hours)->toBe('3.50')
+        ->and($entry->work_date->toDateString())->toBe($timesheet->period_start->addDay()->toDateString())
+        ->and($entry->is_overtime)->toBeTrue();
 
     $this->deleteJson($url)->assertNoContent();
     $this->assertDatabaseMissing('time_entries', ['id' => $entry->id]);

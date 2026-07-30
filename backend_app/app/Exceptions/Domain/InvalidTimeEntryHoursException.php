@@ -14,7 +14,7 @@ class InvalidTimeEntryHoursException extends TimesheetValidationException
         );
     }
 
-    protected function errorCode(): string
+    public function errorCode(): string
     {
         return 'invalid_time_entry_hours';
     }

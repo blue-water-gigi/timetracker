@@ -52,7 +52,30 @@ class TimesheetFactory extends Factory
     {
         return $this->state(fn (): array => [
             'status' => TimesheetStatus::SUBMITTED,
+            'reviewed_by_user_id' => null,
+            'review_comment' => null,
+            'reviewed_at' => null,
             'submitted_at' => now(),
+        ]);
+    }
+
+    public function approved(User $reviewer, ?string $comment = 'Approved.'): static
+    {
+        return $this->submitted()->state(fn (): array => [
+            'status' => TimesheetStatus::APPROVED,
+            'reviewed_by_user_id' => $reviewer->getKey(),
+            'review_comment' => $comment,
+            'reviewed_at' => now(),
+        ]);
+    }
+
+    public function rejected(User $reviewer, string $comment = 'Changes requested.'): static
+    {
+        return $this->submitted()->state(fn (): array => [
+            'status' => TimesheetStatus::REJECTED,
+            'reviewed_by_user_id' => $reviewer->getKey(),
+            'review_comment' => $comment,
+            'reviewed_at' => now(),
         ]);
     }
 

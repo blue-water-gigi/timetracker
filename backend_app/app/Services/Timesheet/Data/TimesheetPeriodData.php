@@ -42,7 +42,7 @@ readonly class TimesheetPeriodData implements Arrayable
         string $errorField = 'period_end'
     ): self {
         if ($periodStart->isAfter($periodEnd)) {
-            throw InvalidTimesheetPeriodException::make($periodStart, $periodEnd);
+            throw InvalidTimesheetPeriodException::make($periodStart, $periodEnd, $errorField);
         }
 
         return new self($periodStart->startOfDay(), $periodEnd->endOfDay());

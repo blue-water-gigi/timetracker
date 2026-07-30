@@ -12,6 +12,8 @@ use App\Models\ProjectMember;
 use App\Models\Timesheet;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Services\Timesheet\Data\TimesheetPeriodData;
+use App\Services\Timesheet\TimesheetService;
 
 final readonly class TenantFixture
 {
@@ -69,17 +71,22 @@ final readonly class TenantFixture
             ->whereBelongsTo($user)
             ->count();
         $periodStart = today()->startOfWeek()->addWeeks($weekOffset);
+        $service = app(TimesheetService::class);
+        $timesheet = $service->create(
+            $project,
+            $user,
+            TimesheetPeriodData::fromValidated([
+                'period_start' => $periodStart->toDateString(),
+                'period_end' => $periodStart->copy()->endOfWeek()->toDateString(),
+            ]),
+        );
 
-        return Timesheet::factory()
-            ->for($project)
-            ->for($user)
-            ->create([
-                'workspace_id' => $project->workspace_id,
-                'period_start' => $periodStart,
-                'period_end' => $periodStart->copy()->endOfWeek(),
-                'status' => $status,
-                'submitted_at' => $status === TimesheetStatus::DRAFT ? null : now(),
-            ]);
+        return match ($status) {
+            TimesheetStatus::DRAFT => $timesheet,
+            TimesheetStatus::SUBMITTED => $service->submit($timesheet),
+            TimesheetStatus::APPROVED => $service->approve($this->admin, $service->submit($timesheet), 'Fixture approval.'),
+            TimesheetStatus::REJECTED => $service->reject($this->admin, $service->submit($timesheet), 'Fixture rejection.'),
+        };
     }
 
     public function projectUrl(string $suffix = ''): string

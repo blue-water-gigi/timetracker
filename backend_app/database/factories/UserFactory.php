@@ -31,10 +31,10 @@ class UserFactory extends Factory
         ];
     }
 
-    public function administrator(?int $workspaceId = null): static
+    public function administrator(): static
     {
         return $this->state(fn (): array => [
-            'workspace_id' => $workspaceId,
+            'workspace_id' => null,
             'system_role' => SystemRole::ADMINISTRATOR,
         ]);
     }

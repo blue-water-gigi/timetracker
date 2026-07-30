@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\ProjectMember;
-use App\Models\Timesheet;
+use App\Services\Timesheet\Data\TimesheetPeriodData;
+use App\Services\Timesheet\TimesheetService;
 use Illuminate\Database\Seeder;
 
 class TimesheetSeeder extends Seeder
 {
+    public function __construct(
+        private readonly TimesheetService $timesheetService,
+    ) {}
+
     /**
      * Run the database seeds.
      */
@@ -17,11 +22,20 @@ class TimesheetSeeder extends Seeder
     {
         ProjectMember::query()
             ->where('active', true)
+            ->with(['project', 'user'])
             ->each(
-                fn (ProjectMember $membership) => Timesheet::factory()->create([
-                    'project_id' => $membership->project_id,
-                    'user_id' => $membership->user_id,
-                ]),
+                function (ProjectMember $membership): void {
+                    $periodStart = today()->startOfWeek();
+
+                    $this->timesheetService->create(
+                        $membership->project,
+                        $membership->user,
+                        TimesheetPeriodData::fromValidated([
+                            'period_start' => $periodStart->toDateString(),
+                            'period_end' => $periodStart->copy()->endOfWeek()->toDateString(),
+                        ]),
+                    );
+                },
             );
     }
 }

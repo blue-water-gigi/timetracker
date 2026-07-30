@@ -4,11 +4,16 @@ use App\Enums\ApprovalRank;
 use App\Enums\ProjectRole;
 use App\Enums\SystemRole;
 use App\Enums\TimesheetStatus;
+use App\Exceptions\Domain\ProjectMembershipRequiredException;
+use App\Exceptions\Domain\TimeEntryOutsideTimesheetPeriodException;
 use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\Timesheet;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Services\Timesheet\Data\CreateTimeEntryData;
+use App\Services\Timesheet\Data\TimesheetPeriodData;
+use App\Services\Timesheet\TimesheetService;
 
 test('model defaults and protected attributes follow the domain contract', function () {
     $user = new User([
@@ -75,14 +80,19 @@ test('timesheet creation enforces active membership and derives tenant fields', 
         'active' => true,
     ]);
 
-    $timesheet = Timesheet::createForProject($project, $user, [
-        'period_start' => '2026-07-13',
-        'period_end' => '2026-07-19',
-    ]);
-    $entry = $timesheet->addEntry([
+    $service = app(TimesheetService::class);
+    $timesheet = $service->create(
+        $project,
+        $user,
+        TimesheetPeriodData::fromValidated([
+            'period_start' => '2026-07-13',
+            'period_end' => '2026-07-19',
+        ]),
+    );
+    $entry = $service->addEntry($timesheet, CreateTimeEntryData::fromValidated([
         'work_date' => '2026-07-14',
         'hours' => 8,
-    ]);
+    ]));
 
     expect($timesheet->workspace_id)->toBe($workspace->id)
         ->and($timesheet->project_id)->toBe($project->id)
@@ -97,25 +107,34 @@ test('timesheet rejects non-members and out-of-period entries', function () {
     $member = User::factory()->forWorkspace($workspace)->create();
     $outsider = User::factory()->forWorkspace($workspace)->create();
     $project = Project::factory()->create(['workspace_id' => $workspace->id]);
+    $service = app(TimesheetService::class);
 
-    expect(fn () => Timesheet::createForProject($project, $outsider, [
-        'period_start' => '2026-07-13',
-        'period_end' => '2026-07-19',
-    ]))->toThrow(DomainException::class);
+    expect(fn () => $service->create(
+        $project,
+        $outsider,
+        TimesheetPeriodData::fromValidated([
+            'period_start' => '2026-07-13',
+            'period_end' => '2026-07-19',
+        ]),
+    ))->toThrow(ProjectMembershipRequiredException::class);
 
     $project->users()->attach($member->id, [
         'project_role' => ProjectRole::PARTICIPANT,
         'active' => true,
     ]);
-    $timesheet = Timesheet::createForProject($project, $member, [
-        'period_start' => '2026-07-13',
-        'period_end' => '2026-07-19',
-    ]);
+    $timesheet = $service->create(
+        $project,
+        $member,
+        TimesheetPeriodData::fromValidated([
+            'period_start' => '2026-07-13',
+            'period_end' => '2026-07-19',
+        ]),
+    );
 
-    expect(fn () => $timesheet->addEntry([
+    expect(fn () => $service->addEntry($timesheet, CreateTimeEntryData::fromValidated([
         'work_date' => '2026-07-20',
         'hours' => 8,
-    ]))->toThrow(DomainException::class);
+    ])))->toThrow(TimeEntryOutsideTimesheetPeriodException::class);
 });
 
 test('soft deletion archives tenant aggregates and preserves timesheet history', function () {

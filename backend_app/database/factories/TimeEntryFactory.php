@@ -19,8 +19,15 @@ class TimeEntryFactory extends Factory
             'work_date' => fn (array $attributes) => Timesheet::query()
                 ->findOrFail($attributes['timesheet_id'])->period_start,
             'description' => fake()->optional()->sentence(),
-            'hours' => fake()->randomFloat(2, 1, 12),
+            'hours' => number_format(fake()->randomFloat(2, 1, 12), 2, '.', ''),
             'is_overtime' => false,
         ];
+    }
+
+    public function overtime(): static
+    {
+        return $this->state(fn (): array => [
+            'is_overtime' => true,
+        ]);
     }
 }
