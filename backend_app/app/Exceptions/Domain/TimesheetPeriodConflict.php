@@ -10,12 +10,11 @@ use Illuminate\Contracts\Debug\ShouldntReport;
 abstract class TimesheetPeriodConflict extends TimesheetValidationException implements ShouldntReport
 {
     protected function __construct(
-        string                 $message,
+        string $message,
         public CarbonInterface $periodStart,
         public CarbonInterface $periodEnd,
-        string                 $field,
-    )
-    {
+        string $field,
+    ) {
         parent::__construct($message, $field);
     }
 

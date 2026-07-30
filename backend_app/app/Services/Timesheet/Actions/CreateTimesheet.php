@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Timesheet\Actions;
 
 use App\Exceptions\Domain\DuplicateTimesheetPeriodException;
@@ -22,7 +24,7 @@ final readonly class CreateTimesheet
     public function handle(Project $project, User $author, TimesheetPeriodData $data): Timesheet
     {
         try {
-            return DB::transaction(function () use ($project, $author, $data) {
+            return DB::transaction(function () use ($project, $author, $data): Timesheet {
                 $activeMember = $project->memberships()
                     ->whereBelongsTo($project)
                     ->whereBelongsTo($author)
@@ -30,11 +32,11 @@ final readonly class CreateTimesheet
                     ->lockForUpdate()
                     ->first();
 
-                if (!$activeMember) {
+                if (! $activeMember) {
                     throw ProjectMembershipRequiredException::make();
                 }
 
-                $timesheet = new Timesheet();
+                $timesheet = new Timesheet;
 
                 $timesheet->forceFill([
                     'workspace_id' => $project->workspace_id,
@@ -45,10 +47,14 @@ final readonly class CreateTimesheet
 
                 return $timesheet;
             });
-        } catch (UniqueConstraintViolationException $e) {
+        } catch (UniqueConstraintViolationException) {
             throw DuplicateTimesheetPeriodException::make();
-        } catch (Throwable $e) {
-            throw new TransactionErrorException('Error creating timesheet', 500, $e);
+        } catch (Throwable $th) {
+            throw new TransactionErrorException(
+                'Error creating timesheet'.$th->getMessage(),
+                $th->getCode(),
+                $th
+            );
         }
     }
 }

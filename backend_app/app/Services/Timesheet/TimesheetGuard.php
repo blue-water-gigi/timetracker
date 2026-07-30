@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Timesheet;
 
 use App\Enums\TimesheetStatus;
@@ -14,9 +16,12 @@ use Carbon\CarbonInterface;
 
 class TimesheetGuard
 {
+    /**
+     * @throws TimesheetAlreadyProcessedException
+     */
     public function ensureEditable(Timesheet $timesheet): void
     {
-        if (!$timesheet->status->isEditable()) {
+        if (! $timesheet->status->isEditable()) {
             throw TimesheetAlreadyProcessedException::make(
                 $timesheet->status,
                 TimesheetStatus::editable()
@@ -24,9 +29,12 @@ class TimesheetGuard
         }
     }
 
+    /**
+     * @throws TimesheetAlreadyProcessedException
+     */
     public function ensureCanSubmit(Timesheet $timesheet): void
     {
-        if (!$timesheet->status->canSubmit()) {
+        if (! $timesheet->status->canSubmit()) {
             throw TimesheetAlreadyProcessedException::make(
                 $timesheet->status,
                 TimesheetStatus::editable()
@@ -34,6 +42,9 @@ class TimesheetGuard
         }
     }
 
+    /**
+     * @throws TimesheetNotSubmittedException
+     */
     public function ensureSubmitted(Timesheet $timesheet): void
     {
         if ($timesheet->status !== TimesheetStatus::SUBMITTED) {
@@ -44,6 +55,9 @@ class TimesheetGuard
         }
     }
 
+    /**
+     * @throws TimeEntryOutsideTimesheetPeriodException
+     */
     public function ensureWorkDateInsidePeriod(Timesheet $timesheet, CarbonInterface $workDate): void
     {
         if ($workDate->isBefore($timesheet->period_start) || $workDate->isAfter($timesheet->period_end)) {
@@ -54,18 +68,25 @@ class TimesheetGuard
         }
     }
 
-    public function ensureValidHours($hours): void
+    /**
+     * @throws InvalidTimeEntryHoursException
+     */
+    public function ensureValidHours(string $hours): void
     {
         $hasValidFormat = preg_match('/^\d+(?:\.\d{1,2})?$/D', $hours) === 1;
 
-        if (!$hasValidFormat || (float)$hours > 24) {
+        if (! $hasValidFormat || (float) $hours > 24) {
             throw InvalidTimeEntryHoursException::make();
         }
     }
 
-    public function ensureReviewComment(?string $comment, bool $required): void
+    /**
+     * @throws ReviewCommentRequiredException
+     * @throws ReviewCommentTooLongException
+     */
+    public function ensureReviewComment(?string $comment, bool $requiredDecision): void
     {
-        if ($required && ($comment === null || trim($comment) === '')) {
+        if ($requiredDecision && ($comment === null || trim($comment) === '')) {
             throw ReviewCommentRequiredException::make();
         }
 
@@ -74,4 +95,3 @@ class TimesheetGuard
         }
     }
 }
-

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Timesheet\Actions;
 
 use App\Exceptions\Domain\DuplicateTimesheetPeriodException;
@@ -16,21 +18,20 @@ use Throwable;
 final readonly class ChangeTimesheetPeriod
 {
     public function __construct(
-        private TimesheetLock  $timesheetLock,
-        private TimesheetGuard $timesheetGuard,
-    )
-    {
-    }
+        private TimesheetLock $lock,
+        private TimesheetGuard $guard,
+    ) {}
 
     /**
      * @throws Throwable
+     * @throws DuplicateTimesheetPeriodException
      */
     public function handle(Timesheet $timesheet, ChangeTimesheetPeriodData $data): Timesheet
     {
         try {
-            return DB::transaction(function () use ($timesheet, $data) {
-                $locked = $this->timesheetLock->lockTimesheet($timesheet);
-                $this->timesheetGuard->ensureEditable($locked);
+            return DB::transaction(function () use ($timesheet, $data): Timesheet {
+                $locked = $this->lock->lockTimesheet($timesheet);
+                $this->guard->ensureEditable($locked);
 
                 if ($data->isEmpty()) {
                     return $locked;

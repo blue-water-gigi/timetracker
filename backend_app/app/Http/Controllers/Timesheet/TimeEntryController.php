@@ -12,6 +12,7 @@ use App\Models\Project;
 use App\Models\TimeEntry;
 use App\Models\Timesheet;
 use App\Models\Workspace;
+use App\Services\Timesheet\TimesheetService;
 use Gate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -19,9 +20,9 @@ use Throwable;
 
 class TimeEntryController extends Controller
 {
+    public function __construct(private readonly TimesheetService $timesheetService) {}
+
     /**
-     * Store a newly created resource in storage.
-     *
      * @throws Throwable
      */
     public function store(
@@ -32,7 +33,7 @@ class TimeEntryController extends Controller
     {
         Gate::authorize('update', $timesheet);
 
-        $entry = $timesheet->addEntry($request->validated());
+        $entry = $this->timesheetService->addEntry($timesheet, $request->entryData());
 
         return new TimeEntryResource($entry->load('timesheet'));
     }
@@ -51,7 +52,7 @@ class TimeEntryController extends Controller
     {
         Gate::authorize('update', $timesheet);
 
-        $entry = $timesheet->updateEntry($entry, $request->validated());
+        $entry = $this->timesheetService->updateEntry($timesheet, $entry, $request->entryData());
 
         return new TimeEntryResource($entry->load('timesheet'));
     }
@@ -69,7 +70,7 @@ class TimeEntryController extends Controller
     {
         Gate::authorize('delete', $timesheet);
 
-        $timesheet->removeEntry($entry);
+        $this->timesheetService->removeEntry($timesheet, $entry);
 
         return response()->json(status: 204);
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Timesheet\Data;
 
 use App\Models\Timesheet;
@@ -13,15 +15,12 @@ readonly class ChangeTimesheetPeriodData
     private function __construct(
         public ?CarbonImmutable $periodStart,
         public ?CarbonImmutable $periodEnd,
-        public bool             $hasPeriodStart,
-        public bool             $hasPeriodEnd,
-    )
-    {
-    }
+        public bool $hasPeriodStart,
+        public bool $hasPeriodEnd,
+    ) {}
 
     /**
-     * @param array{period_start:string, period_end:string} $attributes
-     * @return self
+     * @param  array{period_start?:string, period_end?:string}  $attributes
      */
     public static function fromValidated(array $attributes): self
     {
@@ -38,7 +37,7 @@ readonly class ChangeTimesheetPeriodData
 
     public function isEmpty(): bool
     {
-        return !$this->hasPeriodStart && !$this->hasPeriodEnd;
+        return ! $this->hasPeriodStart && ! $this->hasPeriodEnd;
     }
 
     public function resolve(Timesheet $lockedTimesheet): TimesheetPeriodData
@@ -52,9 +51,7 @@ readonly class ChangeTimesheetPeriodData
         );
     }
 
-
     /**
-     * @param TimesheetPeriodData $resolved
      * @return array{period_start:string, period_end:string}
      */
     public function changes(TimesheetPeriodData $resolved): array

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Timesheet\TimeEntry;
 
-use Carbon\CarbonImmutable;
+use App\Services\Timesheet\Data\CreateTimeEntryData;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
 
 class StoreTimeEntryRequest extends FormRequest
 {
@@ -35,26 +34,33 @@ class StoreTimeEntryRequest extends FormRequest
         ];
     }
 
-    public function after(): array
+    //    public function after(): array
+    //    {
+    //        return [
+    //            function (Validator $validator): void {
+    //                if ($validator->errors()->has('work_date')) {
+    //                    return;
+    //                }
+    //
+    //                $timesheet = $this->route('timesheet');
+    //                $workDate = CarbonImmutable::parse($this->input('work_date'));
+    //
+    //                if ($workDate->lt($timesheet->period_start) || $workDate->gt($timesheet->period_end)) {
+    //                    $validator->errors()->add(
+    //                        'work_date',
+    //                        sprintf('The work date must be between %s and %s.',
+    //                            $timesheet->period_start,
+    //                            $timesheet->period_end,
+    //                        ));
+    //                }
+    //            },
+    //        ];
+    //    }
+
+    public function entryData(): CreateTimeEntryData
     {
-        return [
-            function (Validator $validator): void {
-                if ($validator->errors()->has('work_date')) {
-                    return;
-                }
-
-                $timesheet = $this->route('timesheet');
-                $workDate = CarbonImmutable::parse($this->input('work_date'));
-
-                if ($workDate->lt($timesheet->period_start) || $workDate->gt($timesheet->period_end)) {
-                    $validator->errors()->add(
-                        'work_date',
-                        sprintf('The work date must be between %s and %s.',
-                            $timesheet->period_start,
-                            $timesheet->period_end,
-                        ));
-                }
-            },
-        ];
+        return CreateTimeEntryData::fromValidated(
+            $this->safe()->except('timesheet_id'),
+        );
     }
 }

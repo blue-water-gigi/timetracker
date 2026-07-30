@@ -36,7 +36,7 @@ enum TimesheetStatus: string
         return match ($this) {
             self::DRAFT, self::REJECTED => $to === self::SUBMITTED,
             self::SUBMITTED => in_array($to, self::reviewDecisions(), true),
-            self::APPROVED => fasle,
+            self::APPROVED => false,
         };
     }
 }

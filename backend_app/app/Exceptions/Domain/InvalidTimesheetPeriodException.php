@@ -11,9 +11,8 @@ class InvalidTimesheetPeriodException extends TimesheetPeriodConflict
     public static function make(
         CarbonInterface $periodStart,
         CarbonInterface $periodEnd,
-        string          $field = 'period_end'
-    ): TimesheetPeriodConflict
-    {
+        string $field = 'period_end'
+    ): TimesheetPeriodConflict {
         return new self(
             'The period start must not be after the period end.',
             $periodStart, $periodEnd,

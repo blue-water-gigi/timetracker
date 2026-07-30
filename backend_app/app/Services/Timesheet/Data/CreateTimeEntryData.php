@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Timesheet\Data;
 
 use Carbon\CarbonImmutable;
@@ -12,12 +14,10 @@ readonly class CreateTimeEntryData implements Arrayable
      */
     private function __construct(
         public CarbonImmutable $workDate,
-        public ?string         $description,
-        public string          $hours,
-        public bool            $isOvertime,
-    )
-    {
-    }
+        public ?string $description,
+        public string $hours,
+        public bool $isOvertime,
+    ) {}
 
     /**
      * @param array{
@@ -33,7 +33,7 @@ readonly class CreateTimeEntryData implements Arrayable
             CarbonImmutable::parse($attributes['work_date'])->startOfDay(),
             $attributes['description'],
             $attributes['hours'],
-            (bool)($attributes['is_overtime'] ?? false),
+            (bool) ($attributes['is_overtime'] ?? false),
         );
     }
 

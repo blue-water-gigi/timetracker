@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Timesheet\Data;
 
 use App\Exceptions\Domain\InvalidTimesheetPeriodException;
@@ -13,13 +15,10 @@ readonly class TimesheetPeriodData implements Arrayable
     private function __construct(
         public CarbonImmutable $periodStart,
         public CarbonImmutable $periodEnd
-    )
-    {
-    }
+    ) {}
 
     /**
-     * @param array{period_start:string, period_end:string} $attributes
-     * @return self
+     * @param  array{period_start:string, period_end:string}  $attributes
      */
     public static function fromValidated(array $attributes): self
     {
@@ -40,9 +39,8 @@ readonly class TimesheetPeriodData implements Arrayable
     public static function make(
         CarbonImmutable $periodStart,
         CarbonImmutable $periodEnd,
-        string          $errorField = 'period_end'
-    ): self
-    {
+        string $errorField = 'period_end'
+    ): self {
         if ($periodStart->isAfter($periodEnd)) {
             throw InvalidTimesheetPeriodException::make($periodStart, $periodEnd);
         }
@@ -52,8 +50,8 @@ readonly class TimesheetPeriodData implements Arrayable
 
     public function contains(CarbonInterface $date): bool
     {
-        return !$date->isBefore($this->periodStart)
-            && !$date->isAfter($this->periodEnd);
+        return ! $date->isBefore($this->periodStart)
+            && ! $date->isAfter($this->periodEnd);
     }
 
     /**

@@ -24,7 +24,7 @@ class TimesheetPolicy
         }
 
         // status check
-        if ($timesheet->status !== TimesheetStatus::SUBMITTED) {
+        if (! $timesheet->status->canTransitionTo(TimesheetStatus::APPROVED)) {
             return Response::deny('Only submitted timesheets may be reviewed.');
         }
 
@@ -144,10 +144,7 @@ class TimesheetPolicy
             return Response::denyAsNotFound();
         }
 
-        if (! in_array(
-            $timesheet->status,
-            [TimesheetStatus::REJECTED, TimesheetStatus::DRAFT],
-            true)) {
+        if (! $timesheet->status->isEditable()) {
             return Response::deny('Only draft or rejected timesheets may be changed.');
         }
 

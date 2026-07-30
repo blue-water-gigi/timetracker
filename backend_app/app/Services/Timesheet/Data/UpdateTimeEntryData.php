@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Timesheet\Data;
 
 use Carbon\CarbonImmutable;
@@ -9,17 +11,22 @@ readonly class UpdateTimeEntryData implements Arrayable
 {
     private function __construct(
         public ?CarbonImmutable $workDate,
-        public ?string          $description,
-        public ?string          $hours,
-        public ?bool            $isOvertime,
-        public bool             $hasWorkDate,
-        public bool             $hasDescription,
-        public bool             $hasHours,
-        public bool             $hasIsOvertime,
-    )
-    {
-    }
+        public ?string $description,
+        public ?string $hours,
+        public ?bool $isOvertime,
+        public bool $hasWorkDate,
+        public bool $hasDescription,
+        public bool $hasHours,
+        public bool $hasIsOvertime,
+    ) {}
 
+    /**
+     * @param array{
+     * work_date:string,
+     * description?:string|null,
+     * hours:numeric-string|int|float,
+     * is_overtime?:bool} $attributes
+     */
     public static function fromValidated(array $attributes): self
     {
         $hasWorkDate = array_key_exists('workDate', $attributes);

@@ -11,9 +11,8 @@ class TimesheetPeriodContainsEntriesException extends TimesheetPeriodConflict
     public static function make(
         CarbonInterface $periodStart,
         CarbonInterface $periodEnd,
-        string          $field,
-    ): TimesheetPeriodConflict
-    {
+        string $field,
+    ): TimesheetPeriodConflict {
         return new self(
             'Invalid time entry period.',
             $periodStart,

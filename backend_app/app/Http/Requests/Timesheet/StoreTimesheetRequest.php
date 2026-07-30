@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Timesheet;
 
 use App\Enums\TimesheetStatus;
+use App\Services\Timesheet\Data\TimesheetPeriodData;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -38,5 +39,12 @@ class StoreTimesheetRequest extends FormRequest
             'submitted_at' => ['prohibited'],
             'reviewed_at' => ['prohibited'],
         ];
+    }
+
+    public function periodData(): TimesheetPeriodData
+    {
+        return TimesheetPeriodData::fromValidated(
+            $this->safe()->only(['period_start', 'period_end'])
+        );
     }
 }

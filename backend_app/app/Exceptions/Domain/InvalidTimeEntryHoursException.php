@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Exceptions\Domain;
 
 class InvalidTimeEntryHoursException extends TimesheetValidationException
@@ -11,7 +13,6 @@ class InvalidTimeEntryHoursException extends TimesheetValidationException
             'hours',
         );
     }
-
 
     protected function errorCode(): string
     {

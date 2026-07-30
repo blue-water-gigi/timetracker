@@ -97,7 +97,7 @@ class User extends Authenticatable
     protected function email(): Attribute
     {
         return Attribute::make(
-            set: fn(string $email): string => EmailNormalizer::normalize($email)
+            set: fn (string $email): string => EmailNormalizer::normalize($email)
         );
     }
 

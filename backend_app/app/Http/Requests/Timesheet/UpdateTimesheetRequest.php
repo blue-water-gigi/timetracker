@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Timesheet;
 
-use Carbon\CarbonImmutable;
+use App\Services\Timesheet\Data\ChangeTimesheetPeriodData;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
 
 class UpdateTimesheetRequest extends FormRequest
 {
@@ -40,51 +39,58 @@ class UpdateTimesheetRequest extends FormRequest
         ];
     }
 
-    public function after(): array
+    //    public function after(): array
+    //    {
+    //        return [
+    //            function (Validator $validator): void {
+    //                if ($validator->errors()->hasAny(['period_start', 'period_end'])) {
+    //                    return;
+    //                }
+    //
+    //                $timesheet = $this->route('timesheet');
+    //
+    //                $periodStart = CarbonImmutable::parse(
+    //                    $this->input('period_start', $timesheet->period_start->toDateString())
+    //                );
+    //
+    //                $periodEnd = CarbonImmutable::parse(
+    //                    $this->input('period_end', $timesheet->period_end->toDateString())
+    //                );
+    //
+    //                if ($periodStart->isAfter($periodEnd)) {
+    //                    $validator->errors()->add(
+    //                        $this->has('period_end') ? 'period_end' : 'period_start',
+    //                        'The period start must not be after the period end.'
+    //                    );
+    //
+    //                    return;
+    //                }
+    //
+    //                if (!$this->hasAny(['period_start', 'period_end'])) {
+    //                    return;
+    //                }
+    //
+    //                $hasOutOfRangeEntries = $timesheet->entries()
+    //                    ->where(function ($query) use ($periodStart, $periodEnd) {
+    //                        $query->where('work_date', '<', $periodStart->toDateString())
+    //                            ->orWhere('work_date', '>', $periodEnd->toDateString());
+    //                    })
+    //                    ->exists();
+    //
+    //                if ($hasOutOfRangeEntries) {
+    //                    $validator->errors()->add(
+    //                        $this->has('period_end') ? 'period_end' : 'period_start',
+    //                        'Cannot change the period: one or more time entries fall outside the new range.'
+    //                    );
+    //                }
+    //            },
+    //        ];
+    //    }
+
+    public function periodData(): ChangeTimesheetPeriodData
     {
-        return [
-            function (Validator $validator): void {
-                if ($validator->errors()->hasAny(['period_start', 'period_end'])) {
-                    return;
-                }
-
-                $timesheet = $this->route('timesheet');
-
-                $periodStart = CarbonImmutable::parse(
-                    $this->input('period_start', $timesheet->period_start->toDateString())
-                );
-
-                $periodEnd = CarbonImmutable::parse(
-                    $this->input('period_end', $timesheet->period_end->toDateString())
-                );
-
-                if ($periodStart->isAfter($periodEnd)) {
-                    $validator->errors()->add(
-                        $this->has('period_end') ? 'period_end' : 'period_start',
-                        'The period start must not be after the period end.'
-                    );
-
-                    return;
-                }
-
-                if (! $this->hasAny(['period_start', 'period_end'])) {
-                    return;
-                }
-
-                $hasOutOfRangeEntries = $timesheet->entries()
-                    ->where(function ($query) use ($periodStart, $periodEnd) {
-                        $query->where('work_date', '<', $periodStart->toDateString())
-                            ->orWhere('work_date', '>', $periodEnd->toDateString());
-                    })
-                    ->exists();
-
-                if ($hasOutOfRangeEntries) {
-                    $validator->errors()->add(
-                        $this->has('period_end') ? 'period_end' : 'period_start',
-                        'Cannot change the period: one or more time entries fall outside the new range.'
-                    );
-                }
-            },
-        ];
+        return ChangeTimesheetPeriodData::fromValidated(
+            $this->safe()->only(['period_start', 'period_end'])
+        );
     }
 }

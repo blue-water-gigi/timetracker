@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Timesheet;
 
-use App\Enums\TimesheetStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Timesheet\ApproveTimesheetRequest;
 use App\Http\Requests\Timesheet\RejectTimesheetRequest;
@@ -15,6 +14,7 @@ use App\Http\Resources\Timesheet\TimesheetResource;
 use App\Models\Project;
 use App\Models\Timesheet;
 use App\Models\Workspace;
+use App\Services\Timesheet\TimesheetService;
 use Gate;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -22,6 +22,8 @@ use Throwable;
 
 class TimesheetController extends Controller
 {
+    public function __construct(private readonly TimesheetService $timesheetService) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -49,7 +51,7 @@ class TimesheetController extends Controller
     {
         Gate::authorize('create', [Timesheet::class, $project]);
 
-        $timesheet = Timesheet::createForProject($project, $request->user(), $request->validated());
+        $timesheet = $this->timesheetService->create($project, $request->user(), $request->periodData());
 
         return new TimesheetResource(
             $timesheet->load(['project', 'user', 'entries'])
@@ -79,7 +81,7 @@ class TimesheetController extends Controller
     {
         Gate::authorize('update', $timesheet);
 
-        $timesheet = $timesheet->updatePeriod($request->validated(['period_start', 'period_end']));
+        $timesheet = $this->timesheetService->changePeriod($timesheet, $request->periodData());
 
         return new TimesheetResource($timesheet->load(['project', 'user', 'entries']));
     }
@@ -91,7 +93,7 @@ class TimesheetController extends Controller
     {
         Gate::authorize('submit', $timesheet);
 
-        $timesheet = $timesheet->submit();
+        $timesheet = $this->timesheetService->submit($timesheet);
 
         return new TimesheetResource($timesheet->load(['project', 'user', 'entries']));
     }
@@ -107,11 +109,7 @@ class TimesheetController extends Controller
     {
         Gate::authorize('approve', $timesheet);
 
-        $timesheet = $timesheet->review(
-            $request->user(),
-            TimesheetStatus::APPROVED,
-            $request->validated('review_comment')
-        );
+        $timesheet = $this->timesheetService->approve($request->user(), $timesheet, $request->validated());
 
         return new TimesheetResource($timesheet->load(['project', 'user', 'entries', 'reviewedBy']));
     }
@@ -127,11 +125,7 @@ class TimesheetController extends Controller
     {
         Gate::authorize('reject', $timesheet);
 
-        $timesheet = $timesheet->review(
-            $request->user(),
-            TimesheetStatus::REJECTED,
-            $request->validated('review_comment')
-        );
+        $timesheet = $this->timesheetService->reject($request->user(), $timesheet, $request->validated());
 
         return new TimesheetResource($timesheet->load(['project', 'user', 'entries', 'reviewedBy']));
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Timesheet;
 
 use App\Models\TimeEntry;
@@ -9,8 +11,6 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 class TimesheetLock
 {
     /**
-     * @param Timesheet $timesheet
-     * @return Timesheet
      * @throws ModelNotFoundException
      */
     public function lockTimesheet(Timesheet $timesheet): Timesheet
@@ -21,11 +21,7 @@ class TimesheetLock
             ->firstOrFail();
     }
 
-
     /**
-     * @param TimeEntry $entry
-     * @param Timesheet $locked
-     * @return TimeEntry
      * @throws ModelNotFoundException
      */
     public function lockEntry(TimeEntry $entry, Timesheet $locked): TimeEntry

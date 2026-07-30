@@ -11,8 +11,7 @@ final class TimeEntryOutsideTimesheetPeriodException extends TimesheetPeriodConf
     public static function make(
         CarbonInterface $periodStart,
         CarbonInterface $periodEnd,
-    ): self
-    {
+    ): self {
         return new self(
             'The work date must be within the timesheet period.',
             $periodStart,
