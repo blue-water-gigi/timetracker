@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('organization_id')->constrained()->restrictOnDelete();
             $table->string('name');
-            $table->string('slug');
+            $table->string('slug')->unique()->nullable();
             $table->text('description')->nullable();
             $table->string('join_code_hash', 64)->unique();
             $table->boolean('active')->default(true);

@@ -6,7 +6,6 @@ namespace App\Http\Requests\Workspace;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreWorkspaceRequest extends FormRequest
 {
@@ -18,18 +17,11 @@ class StoreWorkspaceRequest extends FormRequest
     /** @return array<string, ValidationRule|array<mixed>|string> */
     public function rules(): array
     {
-        $organization = $this->route('organization');
+        $this->route('organization');
 
         return [
             'name' => ['required', 'string', 'max:255'],
-            'slug' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('workspaces', 'slug')->where(
-                    fn ($query) => $query->where('organization_id', $organization->getKey())
-                ),
-            ],
+            'slug' => ['prohibited'],
             'description' => ['nullable', 'string', 'max:1024'],
             'active' => ['sometimes', 'boolean'],
             'organization_id' => ['prohibited'],

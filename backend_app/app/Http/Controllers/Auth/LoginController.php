@@ -26,7 +26,7 @@ class LoginController extends Controller
                 'data' => [
                     'error' => 'Theres no user with such credentials.',
                 ],
-            ], 422);
+            ], 401);
         }
 
         $request->session()->regenerate();

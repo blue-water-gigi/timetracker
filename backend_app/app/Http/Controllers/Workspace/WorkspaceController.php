@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Workspace;
 
+use App\Contracts\Queries\GetWorkspaceSummary;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Workspace\RotateJoinCodeRequest;
 use App\Http\Requests\Workspace\StoreWorkspaceRequest;
@@ -15,6 +16,7 @@ use App\Models\Workspace;
 use DB;
 use Gate;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Throwable;
 
@@ -60,13 +62,19 @@ class WorkspaceController extends Controller
         ]);
     }
 
-    public function show(Organization $organization, Workspace $workspace): JsonResource
-    {
+    public function show(
+        Request $request,
+        Organization $organization,
+        Workspace $workspace,
+        GetWorkspaceSummary $query
+    ): JsonResource {
         Gate::authorize('view', $workspace);
+
+        $summary = $query->execute($workspace, $request->user());
 
         return new WorkspaceResource(
             $workspace->load('organization', 'projects')->loadCount('users')
-        );
+        )->withSummary($summary);
     }
 
     /** @throws Throwable */

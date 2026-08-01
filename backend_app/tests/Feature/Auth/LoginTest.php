@@ -40,3 +40,19 @@ test('authenticated user cannot login again', function () {
             'message' => 'You are already logged in.',
         ]);
 });
+
+test('limits repeated login attempts', function () {
+    $payload = [
+        'email' => 'test@example.com',
+        'password' => 'wrong-password',
+    ];
+
+    foreach (range(1, 5) as $attempt) {
+        $this->postJson('/api/v1/login', $payload)
+            ->assertUnauthorized();
+    }
+
+    $this->postJson('/api/v1/login', $payload)
+        ->assertTooManyRequests()
+        ->assertJsonPath('data.errorCode', 'too_many_requests');
+});

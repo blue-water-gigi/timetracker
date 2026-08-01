@@ -14,6 +14,7 @@ RUN install-php-extensions \
     bcmath \
     mbstring \
     intl \
+    redis \
     xdebug \
     gd \
     opcache \
@@ -24,6 +25,6 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-EXPOSE 9000 5173
+EXPOSE 9000
 
 CMD ["php-fpm", "-F"]

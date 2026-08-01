@@ -21,6 +21,11 @@ enum TimesheetStatus: string
         return [self::APPROVED, self::REJECTED];
     }
 
+    public static function validTimesheets(): array
+    {
+        return [self::DRAFT, self::SUBMITTED];
+    }
+
     public function isEditable(): bool
     {
         return in_array($this, self::editable(), true);

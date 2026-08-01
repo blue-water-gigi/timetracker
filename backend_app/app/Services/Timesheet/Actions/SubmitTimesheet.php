@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Timesheet\Actions;
 
 use App\Enums\TimesheetStatus;
+use App\Events\WorkspaceReadModelChanged;
 use App\Exceptions\Transaction\TransactionErrorException;
 use App\Models\Timesheet;
 use App\Services\Timesheet\TimesheetGuard;
@@ -42,6 +43,11 @@ final readonly class SubmitTimesheet
                     'status' => TimesheetStatus::SUBMITTED,
                     'submitted_at' => Carbon::now(),
                 ])->saveOrFail();
+
+                WorkspaceReadModelChanged::dispatch(
+                    workspaceId: (int) $locked->workspace_id,
+                    reason: 'timesheet_submitted'
+                );
 
                 return $locked;
             });

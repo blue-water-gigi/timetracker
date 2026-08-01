@@ -12,7 +12,9 @@ use App\Http\Resources\Project\ProjectMember\ProjectMemberResource;
 use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\Workspace;
-use DB;
+use App\Services\ProjectMember\Actions\CreateProjectMember;
+use App\Services\ProjectMember\Actions\DeleteProjectMember;
+use App\Services\ProjectMember\Actions\UpdateProjectMember as UpdateProjectMemberAction;
 use Gate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -41,17 +43,11 @@ class ProjectMemberController extends Controller
      *
      * @throws Throwable
      */
-    public function store(StoreProjectMember $request, Workspace $workspace, Project $project): JsonResource
+    public function store(StoreProjectMember $request, Workspace $workspace, Project $project, CreateProjectMember $action): JsonResource
     {
         Gate::authorize('create', [ProjectMember::class, $project]);
 
-        $member = DB::transaction(function () use ($request, $project): ProjectMember {
-            $member = new ProjectMember($request->validated());
-            $member->project()->associate($project);
-            $member->saveOrFail();
-
-            return $member;
-        });
+        $member = $action->handle($workspace, $project, $request->validated());
 
         return new ProjectMemberResource($member->load(['project', 'user']));
     }
@@ -75,11 +71,12 @@ class ProjectMemberController extends Controller
         UpdateProjectMember $request,
         Workspace $workspace,
         Project $project,
-        ProjectMember $membership): JsonResource
+        ProjectMember $membership,
+        UpdateProjectMemberAction $action): JsonResource
     {
         Gate::authorize('update', $membership);
 
-        $membership->updateOrFail($request->validated());
+        $action->handle($workspace, $membership, $request->validated());
 
         return new ProjectMemberResource($membership->load(['project', 'user']));
     }
@@ -89,11 +86,15 @@ class ProjectMemberController extends Controller
      *
      * @throws Throwable
      */
-    public function destroy(Workspace $workspace, Project $project, ProjectMember $membership): JsonResponse
+    public function destroy(
+        Workspace $workspace,
+        Project $project,
+        ProjectMember $membership,
+        DeleteProjectMember $action): JsonResponse
     {
         Gate::authorize('delete', $membership);
 
-        $membership->deleteOrFail();
+        $action->handle($workspace, $membership);
 
         return response()->json(status: 204);
     }

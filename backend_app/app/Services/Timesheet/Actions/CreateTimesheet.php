@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Timesheet\Actions;
 
+use App\Events\WorkspaceReadModelChanged;
 use App\Exceptions\Domain\DuplicateTimesheetPeriodException;
 use App\Exceptions\Domain\ProjectMembershipRequiredException;
 use App\Exceptions\Transaction\TransactionErrorException;
@@ -45,6 +46,11 @@ final readonly class CreateTimesheet
                     'user_id' => $author->id,
                     ...$data->toArray(),
                 ])->saveOrFail();
+
+                WorkspaceReadModelChanged::dispatch(
+                    workspaceId: (int) $project->workspace_id,
+                    reason: 'timesheet_created'
+                );
 
                 return $timesheet;
             });

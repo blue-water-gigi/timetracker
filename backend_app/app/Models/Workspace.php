@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -23,7 +24,7 @@ class Workspace extends Model
 
     protected $fillable = [
         'name',
-        'slug',
+        //        'slug',
         'description',
         'active',
     ];
@@ -105,5 +106,10 @@ class Workspace extends Model
     public function timesheets(): HasMany
     {
         return $this->hasMany(Timesheet::class);
+    }
+
+    public function memberships(): HasManyThrough
+    {
+        return $this->hasManyThrough(ProjectMember::class, Project::class);
     }
 }

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('updated_by_user_id')->constrained('users')->restrictOnDelete();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->string('slug')->unique();
+            $table->string('slug')->unique()->nullable();
             $table->boolean('active')->default(true);
             $table->date('period_start')->nullable();
             $table->date('period_end')->nullable();

@@ -21,7 +21,7 @@ class Organization extends Model
 
     protected $fillable = [
         'name',
-        'slug',
+        //        'slug',
     ];
 
     /** @return BelongsTo<User, $this> */

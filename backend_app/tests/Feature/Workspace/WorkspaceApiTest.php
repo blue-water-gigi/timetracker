@@ -11,7 +11,6 @@ it('creates a workspace without exposing its join code digest', function () {
     $response = $this->actingAs($tenant->admin)
         ->postJson('/api/v1/organizations/'.$tenant->organization->id.'/workspaces', [
             'name' => 'Backend team',
-            'slug' => 'backend-team',
             'description' => null,
         ])
         ->assertCreated()
