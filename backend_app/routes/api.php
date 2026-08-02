@@ -33,7 +33,6 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
     Route::apiResource('workspaces/{workspace}/projects', ProjectController::class)
         ->scoped();
-    Route::get('workspaces/{workspace}/my-projects', [ProjectController::class, 'showMyProjects']);
 
     Route::apiResource('workspaces/{workspace}/projects/{project}/members', ProjectMemberController::class)
         ->parameters(['members' => 'membership'])

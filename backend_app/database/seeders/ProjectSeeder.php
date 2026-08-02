@@ -17,7 +17,7 @@ class ProjectSeeder extends Seeder
     {
         Workspace::query()->each(
             fn (Workspace $workspace) => Project::factory()
-                ->count(2)
+                ->count(20)
                 ->for($workspace)
                 ->create(),
         );

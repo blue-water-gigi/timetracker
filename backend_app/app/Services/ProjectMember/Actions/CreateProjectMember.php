@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services\ProjectMember\Actions;
 
+use App\Events\ProjectListChanged;
 use App\Events\WorkspaceReadModelChanged;
 use App\Exceptions\Transaction\TransactionErrorException;
 use App\Models\Project;
 use App\Models\ProjectMember;
-use App\Models\Workspace;
 use DB;
 use Throwable;
 
@@ -21,17 +21,22 @@ final readonly class CreateProjectMember
      *
      * @throws TransactionErrorException
      */
-    public function handle(Workspace $workspace, Project $project, array $data): ProjectMember
+    public function handle(Project $project, array $data): ProjectMember
     {
         try {
-            return DB::transaction(function () use ($workspace, $project, $data): ProjectMember {
+            return DB::transaction(function () use ($project, $data): ProjectMember {
                 $member = new ProjectMember($data);
                 $member->project()->associate($project);
                 $member->saveOrFail();
 
                 WorkspaceReadModelChanged::dispatch(
-                    workspaceId: $workspace->id,
+                    workspaceId: (int) $member->project()->value('workspace_id'),
                     reason: 'project_member_created',
+                );
+
+                ProjectListChanged::dispatch(
+                    workspaceId: (int) $member->project()->value('workspace_id'),
+                    reason: 'project_member_created'
                 );
 
                 return $member;

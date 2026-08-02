@@ -47,7 +47,7 @@ class ProjectMemberController extends Controller
     {
         Gate::authorize('create', [ProjectMember::class, $project]);
 
-        $member = $action->handle($workspace, $project, $request->validated());
+        $member = $action->handle($project, $request->validated());
 
         return new ProjectMemberResource($member->load(['project', 'user']));
     }
@@ -76,7 +76,7 @@ class ProjectMemberController extends Controller
     {
         Gate::authorize('update', $membership);
 
-        $action->handle($workspace, $membership, $request->validated());
+        $action->handle($membership, $request->validated());
 
         return new ProjectMemberResource($membership->load(['project', 'user']));
     }
@@ -94,7 +94,7 @@ class ProjectMemberController extends Controller
     {
         Gate::authorize('delete', $membership);
 
-        $action->handle($workspace, $membership);
+        $action->handle($membership);
 
         return response()->json(status: 204);
     }

@@ -3,6 +3,14 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use Illuminate\Routing\Middleware\ThrottleRequestsWithRedis;
+
+beforeEach(function (): void {
+    $this->withMiddleware(ThrottleRequestsWithRedis::class);
+    $this->withServerVariables([
+        'REMOTE_ADDR' => fake()->unique()->ipv4(),
+    ]);
+});
 
 it('normalizes email before validation, persistence and authentication', function () {
     $email = fake()->unique()->safeEmail();
@@ -35,7 +43,7 @@ it('uses one normalized login bucket and forwards retry headers', function () {
         $this->postJson('/api/v1/login', [
             'email' => $attempt % 2 === 0 ? strtoupper($email) : $email,
             'password' => 'wrong-password',
-        ])->assertUnprocessable();
+        ])->assertUnauthorized();
     }
 
     $this->postJson('/api/v1/login', [
@@ -47,8 +55,6 @@ it('uses one normalized login bucket and forwards retry headers', function () {
 });
 
 it('keeps administrator and employee registration rate-limit buckets separate', function () {
-    $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.10']);
-
     foreach (range(1, 5) as $attempt) {
         $this->postJson('/api/v1/register/admin', [
             'email' => "invalid-admin-{$attempt}",

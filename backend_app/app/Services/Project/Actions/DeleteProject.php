@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Project\Actions;
 
+use App\Events\ProjectListChanged;
 use App\Events\WorkspaceReadModelChanged;
 use App\Exceptions\Transaction\TransactionErrorException;
 use App\Models\Project;
@@ -22,6 +23,11 @@ final readonly class DeleteProject
                 $project->deleteOrFail();
 
                 WorkspaceReadModelChanged::dispatch(
+                    workspaceId: $project->workspace_id,
+                    reason: 'project_deleted'
+                );
+
+                ProjectListChanged::dispatch(
                     workspaceId: $project->workspace_id,
                     reason: 'project_deleted'
                 );

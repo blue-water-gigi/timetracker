@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Project;
 
+use App\Contracts\Queries\GetProjectList;
+use App\Exceptions\Transaction\TransactionErrorException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Project\ShowProjectListRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
-use App\Http\Resources\Project\ProjectCollection;
 use App\Http\Resources\Project\ProjectResource;
 use App\Models\Project;
 use App\Models\User;
@@ -15,55 +17,31 @@ use App\Models\Workspace;
 use App\Services\Project\Actions\CreateProject;
 use App\Services\Project\Actions\DeleteProject;
 use App\Services\Project\Actions\UpdateProject;
-use Auth;
 use Gate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Throwable;
 
 class ProjectController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Workspace $workspace): JsonResource
+    public function index(ShowProjectListRequest $request, Workspace $workspace, GetProjectList $list): JsonResponse
     {
         /** @var User $user */
-        $user = Auth::user();
+        $user = $request->user();
 
         Gate::authorize('viewAny', [Project::class, $workspace]);
 
-        return new ProjectCollection(
-            Project::query()->visibleTo($user, $workspace)
-                ->with(['workspace', 'createdBy', 'updatedBy'])
-                ->withCount('memberships')
-                ->latest()
-                ->paginate(15)
-                ->withQueryString()
+        $projects = $list->execute(
+            $workspace,
+            $user,
+            page: $request->integer('page', 1),
+            perPage: $request->integer('perPage', 15),
         );
-    }
 
-    public function showMyProjects(Workspace $workspace): JsonResource
-    {
-        /** @var User $user */
-        $user = Auth::user();
-
-        Gate::authorize('viewSelfProjects', [Project::class, $workspace]);
-
-        return new ProjectCollection(
-            Project::query()->visibleTo($user, $workspace)
-                ->with(['workspace', 'createdBy', 'updatedBy'])
-                ->withCount('memberships')
-                ->latest()
-                ->paginate(10)
-                ->withQueryString()
-        );
+        return response()->json($projects);
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @throws Throwable
+     * @throws TransactionErrorException
      */
     public function store(StoreProjectRequest $request, Workspace $workspace, CreateProject $action): JsonResource
     {
@@ -74,9 +52,6 @@ class ProjectController extends Controller
         return new ProjectResource($project->load('workspace'));
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Workspace $workspace, Project $project): JsonResource
     {
         Gate::authorize('view', $project);
@@ -87,9 +62,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @throws Throwable
+     * @throws TransactionErrorException
      */
     public function update(UpdateProjectRequest $request, Workspace $workspace, Project $project, UpdateProject $action): JsonResource
     {
@@ -101,9 +74,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @throws Throwable
+     * @throws TransactionErrorException
      */
     public function destroy(Workspace $workspace, Project $project, DeleteProject $action): JsonResponse
     {

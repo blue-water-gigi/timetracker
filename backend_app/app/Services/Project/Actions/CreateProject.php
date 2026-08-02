@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Project\Actions;
 
+use App\Events\ProjectListChanged;
 use App\Events\WorkspaceReadModelChanged;
 use App\Exceptions\Transaction\TransactionErrorException;
 use App\Models\Project;
@@ -37,6 +38,11 @@ final readonly class CreateProject
                 ])->saveOrFail();
 
                 WorkspaceReadModelChanged::dispatch(
+                    workspaceId: $project->workspace_id,
+                    reason: 'project_created'
+                );
+
+                ProjectListChanged::dispatch(
                     workspaceId: $project->workspace_id,
                     reason: 'project_created'
                 );

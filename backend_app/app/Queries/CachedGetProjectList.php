@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Queries;
 
-use App\Contracts\Queries\GetWorkspaceSummary;
+use App\Contracts\Queries\GetProjectList;
 use App\Models\User;
 use App\Models\Workspace;
 use App\Support\Cache\CacheKeys;
@@ -12,13 +12,10 @@ use Illuminate\Contracts\Cache\Repository;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-readonly class CachedGetWorkspaceSummary implements GetWorkspaceSummary
+readonly class CachedGetProjectList implements GetProjectList
 {
-    /**
-     * Create a new class instance.
-     */
     public function __construct(
-        private GetWorkspaceSummary $decorated,
+        private GetProjectList $decorator,
         private Repository $cache,
         private LoggerInterface $logger,
         private ?int $ttl,
@@ -27,44 +24,38 @@ readonly class CachedGetWorkspaceSummary implements GetWorkspaceSummary
     /**
      * {@inheritDoc}
      */
-    public function execute(Workspace $workspace, User $viewer): array
+    public function execute(Workspace $workspace, User $viewer, int $page = 1, int $perPage = 15): array
     {
         $workspaceId = (int) $workspace->getKey();
         $viewerId = (int) $viewer->getKey();
 
-        $key = CacheKeys::workspaceSummary($workspaceId, $viewerId);
+        $key = CacheKeys::projectList($workspaceId, $viewerId, $page, $perPage);
 
-        // trying to read from cache,
-        // if something wrong with cache driver
-        // then go straight to Eloquent and return result
         try {
             $tagged = $this->cache->tags([
-                CacheKeys::workspaceTag($workspaceId),
+                CacheKeys::projectTag($workspaceId),
             ]);
 
             $cached = $tagged->get($key);
         } catch (Throwable $th) {
             $this->fallback($th, $workspaceId);
 
-            return $this->decorated->execute($workspace, $viewer);
+            return $this->decorator->execute($workspace, $viewer, $page, $perPage);
         }
 
-        // if we got result from cache - returning it
         if (is_array($cached)) {
             return $cached;
         }
 
-        // else go to Eloquent and get value from there
-        $summary = $this->decorated->execute($workspace, $viewer);
+        $list = $this->decorator->execute($workspace, $viewer, $page, $perPage);
 
-        // then putting it into cache and returning result
         try {
-            $tagged->put($key, $summary, $this->ttl);
+            $tagged->put($key, $list, $this->ttl);
         } catch (Throwable $th) {
             $this->fallback($th, $workspaceId);
         }
 
-        return $summary;
+        return $list;
     }
 
     /**
@@ -72,7 +63,7 @@ readonly class CachedGetWorkspaceSummary implements GetWorkspaceSummary
      */
     private function fallback(Throwable $th, int $workspaceId): void
     {
-        $this->logger->warning('Workspace summary cache fallback.', [
+        $this->logger->warning('Project list cache fallback.', [
             'workspaceId' => $workspaceId,
             'exception' => $th::class,
         ]);

@@ -13,7 +13,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         Workspace::query()->each(
-            fn (Workspace $workspace) => User::factory(4)->forWorkspace($workspace)->create()
+            fn (Workspace $workspace) => User::factory(20)->forWorkspace($workspace)->create()
         );
     }
 }

@@ -54,7 +54,7 @@ it('returns only active projects visible through active membership', function ()
     $tenant->membership($employee, project: $inactive);
 
     $response = $this->actingAs($employee)
-        ->getJson('/api/v1/workspaces/'.$tenant->workspace->id.'/my-projects')
+        ->getJson('/api/v1/workspaces/'.$tenant->workspace->id.'/projects')
         ->assertOk();
 
     $projectIds = collect($response->json('data'))->pluck('id');

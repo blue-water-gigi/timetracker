@@ -29,6 +29,6 @@ class OrganizationSeeder extends Seeder
             'slug' => 'yandex-llc',
         ]);
 
-        Organization::factory(10)->create();
+        Organization::factory(40)->create();
     }
 }

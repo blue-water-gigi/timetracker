@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\ProjectMember\Actions;
 
-use App\Events\WorkspaceReadModelChanged;
+use App\Events\ProjectListChanged;
 use App\Exceptions\Transaction\TransactionErrorException;
 use App\Models\ProjectMember;
-use App\Models\Workspace;
 use DB;
 use Throwable;
 
@@ -19,14 +18,14 @@ final readonly class UpdateProjectMember
      *
      * @throws TransactionErrorException
      */
-    public function handle(Workspace $workspace, ProjectMember $member, array $data): void
+    public function handle(ProjectMember $member, array $data): void
     {
         try {
-            DB::transaction(function () use ($workspace, $member, $data) {
+            DB::transaction(function () use ($member, $data) {
                 $member->updateOrFail($data);
 
-                WorkspaceReadModelChanged::dispatch(
-                    workspaceId: $workspace->id,
+                ProjectListChanged::dispatch(
+                    workspaceId: (int) $member->project()->value('workspace_id'),
                     reason: 'project_member_updated',
                 );
             });

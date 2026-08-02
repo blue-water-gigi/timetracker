@@ -13,6 +13,7 @@ use App\Http\Resources\Workspace\WorkspaceCollection;
 use App\Http\Resources\Workspace\WorkspaceResource;
 use App\Models\Organization;
 use App\Models\Workspace;
+use App\Services\Workspace\Actions\UpdateWorkspace;
 use DB;
 use Gate;
 use Illuminate\Http\JsonResponse;
@@ -81,11 +82,12 @@ class WorkspaceController extends Controller
     public function update(
         UpdateWorkspaceRequest $request,
         Organization $organization,
-        Workspace $workspace
+        Workspace $workspace,
+        UpdateWorkspace $action,
     ): JsonResource {
         Gate::authorize('update', $workspace);
 
-        $workspace->updateOrFail($request->validated());
+        $action->handle($workspace, $request->validated());
 
         return new WorkspaceResource($workspace);
     }

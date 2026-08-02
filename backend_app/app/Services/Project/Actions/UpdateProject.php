@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Project\Actions;
 
-use App\Events\WorkspaceReadModelChanged;
+use App\Events\ProjectListChanged;
 use App\Exceptions\Transaction\TransactionErrorException;
 use App\Models\Project;
 use DB;
@@ -24,7 +24,7 @@ final readonly class UpdateProject
                         'updated_by_user_id' => $updatedByUserId,
                     ])->saveOrFail();
 
-                WorkspaceReadModelChanged::dispatch(
+                ProjectListChanged::dispatch(
                     workspaceId: $project->workspace_id,
                     reason: 'project_updated'
                 );

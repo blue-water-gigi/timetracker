@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Contracts\Cache\ProjectListCacheInvalidator;
 use App\Contracts\Cache\WorkspaceCacheInvalidator;
+use App\Contracts\Queries\GetProjectList;
 use App\Contracts\Queries\GetWorkspaceSummary;
+use App\Infrastructure\Cache\NullProjectListCacheInvalidator;
 use App\Infrastructure\Cache\NullWorkspaceCacheInvalidator;
+use App\Infrastructure\Cache\RedisProjectListCacheInvalidator;
 use App\Infrastructure\Cache\RedisWorkspaceCacheInvalidator;
+use App\Queries\CachedGetProjectList;
 use App\Queries\CachedGetWorkspaceSummary;
+use App\Queries\EloquentGetProjectList;
 use App\Queries\EloquentGetWorkspaceSummary;
 use Cache;
 use Illuminate\Contracts\Foundation\Application;
@@ -38,12 +44,32 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
-        $this->app->bind(fn(Application $app): WorkspaceCacheInvalidator => config('redis_features.workspace_summary.enabled')
+        $this->app->bind(function (Application $app): GetProjectList {
+            $dbQuery = $app->make(EloquentGetProjectList::class);
+
+            if (! config('redis_features.project_list.enabled')) {
+                return $dbQuery;
+            }
+
+            return new CachedGetProjectList(
+                decorator: $dbQuery,
+                cache: Cache::store(config('redis_features.project_list.store')),
+                logger: $app->make(LoggerInterface::class),
+                ttl: config('redis_features.project_list.ttl')
+            );
+        });
+
+        $this->app->bind(fn (Application $app): WorkspaceCacheInvalidator => config('redis_features.workspace_summary.enabled')
             ? new RedisWorkspaceCacheInvalidator(
                 Cache::store(config('redis_features.workspace_summary.store')),
             )
             : new NullWorkspaceCacheInvalidator);
 
+        $this->app->bind(fn (): ProjectListCacheInvalidator => config('redis_features.project_list.enabled')
+            ? new RedisProjectListCacheInvalidator(
+                Cache::store(config('redis_features.project_list.store')),
+            )
+            : new NullProjectListCacheInvalidator);
     }
 
     /**

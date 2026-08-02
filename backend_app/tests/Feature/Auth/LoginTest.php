@@ -1,6 +1,14 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Routing\Middleware\ThrottleRequestsWithRedis;
+
+beforeEach(function (): void {
+    $this->withMiddleware(ThrottleRequestsWithRedis::class);
+    $this->withServerVariables([
+        'REMOTE_ADDR' => fake()->unique()->ipv4(),
+    ]);
+});
 
 test('guest can login with valid credentials', function () {
     User::factory()->create([
@@ -23,7 +31,7 @@ test('login rejects invalid credentials', function () {
     $this->actingAsGuest()->postJson('/api/v1/login', [
         'email' => 'not_present@mail.com',
         'password' => 'password',
-    ])->assertUnprocessable();
+    ])->assertUnauthorized();
 });
 
 test('authenticated user cannot login again', function () {
