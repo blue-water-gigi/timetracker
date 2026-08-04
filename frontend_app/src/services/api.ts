@@ -84,10 +84,8 @@ export const api = {
       { method: 'POST', body: json({}) },
     ),
 
-  projects: (workspaceId: number, page = 1, mine = false) =>
-    request<CollectionResponse<Project>>(
-      `/workspaces/${workspaceId}/${mine ? 'my-projects' : 'projects'}?page=${page}`,
-    ),
+  projects: (workspaceId: number, page = 1) =>
+    request<CollectionResponse<Project>>(`/workspaces/${workspaceId}/projects?page=${page}`),
   project: (workspaceId: number, projectId: number) =>
     request<ApiResponse<Project>>(`/workspaces/${workspaceId}/projects/${projectId}`),
   createProject: (workspaceId: number, payload: ProjectPayload) =>
@@ -130,6 +128,8 @@ export const api = {
     request<void>(`/workspaces/${workspaceId}/projects/${projectId}/members/${membershipId}`, {
       method: 'DELETE',
     }),
+  users: (workspaceId: number) =>
+    request<CollectionResponse<User>>(`/workspaces/${workspaceId}/users`),
 
   timesheets: (workspaceId: number, projectId: number, page = 1) =>
     request<CollectionResponse<Timesheet>>(

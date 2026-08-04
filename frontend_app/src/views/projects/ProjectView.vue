@@ -1,16 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import {
-  Archive,
-  ArrowUpRight,
-  CalendarPlus,
-  Clock3,
-  Pencil,
-  Plus,
-  UserPlus,
-  UsersRound,
-} from '@lucide/vue'
+import { Archive, ArrowUpRight, CalendarPlus, Clock3, Pencil, Plus } from '@lucide/vue'
 
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
@@ -24,7 +15,7 @@ import { useToast } from '@/composables/use-toast'
 import { api } from '@/services/api'
 import { ApiError, firstError } from '@/services/api-client'
 import { useAuthStore } from '@/stores/auth'
-import type { Project, ProjectMember, ProjectRole, Timesheet } from '@/types/domain'
+import type { Project, ProjectMember, ProjectRole, Timesheet, User } from '@/types/domain'
 import { formatDate, projectRoleLabels, userName } from '@/utils/formatters'
 
 const auth = useAuthStore()
@@ -35,6 +26,7 @@ const workspaceId = computed(() => Number(route.params.workspaceId))
 const projectId = computed(() => Number(route.params.projectId))
 const project = ref<Project>()
 const members = ref<ProjectMember[]>([])
+const workspaceUsers = ref<User[]>([])
 const timesheets = ref<Timesheet[]>([])
 const loading = ref(true)
 const saving = ref(false)
@@ -44,15 +36,10 @@ const editProjectOpen = ref(false)
 const editMemberOpen = ref(false)
 const selectedMember = ref<ProjectMember>()
 const fieldErrors = ref<Record<string, string[]>>({})
-const memberForm = reactive({
-  userId: '',
-  projectRole: 'participant' as ProjectRole,
-  active: true,
-})
+const memberForm = reactive({ userId: '', projectRole: 'participant' as ProjectRole, active: true })
 const timesheetForm = reactive({ periodStart: '', periodEnd: '' })
 const projectForm = reactive({
   name: '',
-  slug: '',
   description: '',
   active: true,
   periodStart: '',
@@ -72,18 +59,28 @@ const canCreateTimesheet = computed(() => Boolean(myMembership.value?.active))
 const submittedCount = computed(
   () => timesheets.value.filter((sheet) => sheet.status === 'submitted').length,
 )
+const availableUsers = computed(() => {
+  const existingIds = new Set(members.value.map((member) => member.user?.id))
+  const candidates = new Map(workspaceUsers.value.map((user) => [user.id, user]))
+  if (auth.isAdmin && auth.user) candidates.set(auth.user.id, auth.user)
+  return [...candidates.values()].filter((user) => !existingIds.has(user.id))
+})
 
 async function load(): Promise<void> {
   loading.value = true
   try {
-    const [projectResponse, membersResponse, timesheetsResponse] = await Promise.all([
-      api.project(workspaceId.value, projectId.value),
-      api.members(workspaceId.value, projectId.value),
-      api.timesheets(workspaceId.value, projectId.value),
-    ])
+    const [projectResponse, membersResponse, timesheetsResponse, usersResponse] = await Promise.all(
+      [
+        api.project(workspaceId.value, projectId.value),
+        api.members(workspaceId.value, projectId.value),
+        api.timesheets(workspaceId.value, projectId.value),
+        api.users(workspaceId.value),
+      ],
+    )
     project.value = projectResponse.data
     members.value = membersResponse.data
     timesheets.value = timesheetsResponse.data
+    workspaceUsers.value = usersResponse.data
   } catch (error) {
     show(firstError(error) ?? 'Не удалось загрузить проект.', 'error')
   } finally {
@@ -104,7 +101,6 @@ function openTimesheetCreate(): void {
   monday.setDate(today.getDate() - day + 1)
   const sunday = new Date(monday)
   sunday.setDate(monday.getDate() + 6)
-
   Object.assign(timesheetForm, {
     periodStart: monday.toISOString().slice(0, 10),
     periodEnd: sunday.toISOString().slice(0, 10),
@@ -117,7 +113,6 @@ function openProjectEdit(): void {
   if (!project.value) return
   Object.assign(projectForm, {
     name: project.value.name,
-    slug: project.value.slug,
     description: project.value.description ?? '',
     active: project.value.active,
     periodStart: project.value.periodStart?.slice(0, 10) ?? '',
@@ -136,6 +131,17 @@ function openMemberEdit(member: ProjectMember): void {
   })
   fieldErrors.value = {}
   editMemberOpen.value = true
+}
+
+function periodDates(start: string, end: string): string[] {
+  const dates: string[] = []
+  const current = new Date(`${start}T00:00:00Z`)
+  const last = new Date(`${end}T00:00:00Z`)
+  while (current <= last) {
+    dates.push(current.toISOString().slice(0, 10))
+    current.setUTCDate(current.getUTCDate() + 1)
+  }
+  return dates
 }
 
 async function createMember(): Promise<void> {
@@ -167,7 +173,10 @@ async function updateMember(): Promise<void> {
       workspaceId.value,
       projectId.value,
       selectedMember.value.id,
-      { project_role: memberForm.projectRole, active: memberForm.active },
+      {
+        project_role: memberForm.projectRole,
+        active: memberForm.active,
+      },
     )
     const index = members.value.findIndex((member) => member.id === response.data.id)
     if (index >= 0) members.value[index] = response.data
@@ -183,9 +192,7 @@ async function updateMember(): Promise<void> {
 
 async function removeMember(): Promise<void> {
   if (!selectedMember.value) return
-  const accepted = window.confirm(`Удалить ${userName(selectedMember.value.user)} из проекта?`)
-  if (!accepted) return
-
+  if (!window.confirm(`Удалить ${userName(selectedMember.value.user)} из проекта?`)) return
   saving.value = true
   try {
     await api.removeMember(workspaceId.value, projectId.value, selectedMember.value.id)
@@ -207,8 +214,21 @@ async function createTimesheet(): Promise<void> {
       period_start: timesheetForm.periodStart,
       period_end: timesheetForm.periodEnd,
     })
+    try {
+      await Promise.all(
+        periodDates(timesheetForm.periodStart, timesheetForm.periodEnd).map((workDate) =>
+          api.createEntry(workspaceId.value, projectId.value, response.data.id, {
+            work_date: workDate,
+            description: null,
+            hours: 0,
+            is_overtime: false,
+          }),
+        ),
+      )
+    } catch {
+      show('Табель создан, но не все дни удалось заполнить автоматически.', 'error')
+    }
     timesheetModalOpen.value = false
-    show('Черновик табеля создан.', 'success')
     await router.push({
       name: 'timesheet',
       params: {
@@ -233,7 +253,6 @@ async function updateProject(): Promise<void> {
     project.value = (
       await api.updateProject(workspaceId.value, projectId.value, {
         name: projectForm.name,
-        slug: projectForm.slug,
         description: projectForm.description || null,
         active: projectForm.active,
         period_start: projectForm.periodStart || null,
@@ -251,9 +270,7 @@ async function updateProject(): Promise<void> {
 }
 
 async function archiveProject(): Promise<void> {
-  if (!project.value) return
-  const accepted = window.confirm(`Архивировать проект «${project.value.name}»?`)
-  if (!accepted) return
+  if (!project.value || !window.confirm(`Архивировать проект «${project.value.name}»?`)) return
   try {
     await api.archiveProject(workspaceId.value, projectId.value)
     show('Проект архивирован.', 'success')
@@ -267,6 +284,7 @@ onMounted(load)
 </script>
 
 <template>
+  <!-- eslint-disable vue/multiline-html-element-content-newline -->
   <div class="page-stack">
     <LoadingState v-if="loading" />
 
@@ -274,42 +292,37 @@ onMounted(load)
       <PageHeader
         :eyebrow="project.workspace?.name || 'Проект'"
         :title="project.name"
-        :description="project.description || `/${project.slug}`"
+        :description="project.description || 'Описание не добавлено'"
       >
         <template #actions>
           <AppButton v-if="auth.isAdmin" variant="outline" @click="openProjectEdit">
-            Настройки
-            <template #icon><Pencil :size="16" /></template>
-          </AppButton>
-          <AppButton v-if="canManageMembers" variant="secondary" @click="openMemberCreate">
-            Добавить участника
-            <template #icon><UserPlus :size="16" /></template>
+            Настройки<template #icon><Pencil :size="16" /></template>
           </AppButton>
           <AppButton v-if="canCreateTimesheet" @click="openTimesheetCreate">
-            Новый табель
-            <template #icon><CalendarPlus :size="17" /></template>
+            Новый табель<template #icon><CalendarPlus :size="17" /></template>
           </AppButton>
         </template>
       </PageHeader>
 
       <section class="stats-grid stats-grid--three">
         <article class="stat-card">
-          <span class="stat-card__label">Команда</span>
-          <strong>{{ members.length }}</strong>
+          <span class="stat-card__label">Команда</span><strong>{{ members.length }}</strong>
           <p>{{ members.filter((member) => member.active).length }} активных участников</p>
         </article>
         <article class="stat-card">
-          <span class="stat-card__label">Табели</span>
-          <strong>{{ timesheets.length }}</strong>
+          <span class="stat-card__label">Табели</span><strong>{{ timesheets.length }}</strong>
           <p>{{ submittedCount }} ждут решения</p>
         </article>
         <article class="stat-card">
           <span class="stat-card__label">Период проекта</span>
           <strong class="stat-card__value-sm">
-            {{ project.periodStart ? formatDate(project.periodStart) : 'Без срока' }}
+            {{
+              project.periodStart && project.periodEnd
+                ? `${formatDate(project.periodStart)} - ${formatDate(project.periodEnd)}`
+                : 'Без срока'
+            }}
           </strong>
-          <p v-if="project.periodEnd">до {{ formatDate(project.periodEnd) }}</p>
-          <p v-else>Сроки не ограничены</p>
+          <p>{{ project.periodEnd ? 'Установленный период' : 'Сроки не ограничены' }}</p>
         </article>
       </section>
 
@@ -320,17 +333,8 @@ onMounted(load)
               <p class="eyebrow">Люди и роли</p>
               <h2>Команда проекта</h2>
             </div>
-            <AppButton
-              v-if="canManageMembers"
-              variant="secondary"
-              size="sm"
-              @click="openMemberCreate"
-            >
-              Добавить
-              <template #icon><Plus :size="15" /></template>
-            </AppButton>
           </header>
-          <div v-if="members.length" class="list">
+          <div class="list">
             <button
               v-for="member in members"
               :key="member.id"
@@ -341,19 +345,25 @@ onMounted(load)
               @click="canManageMembers && openMemberEdit(member)"
             >
               <UserAvatar :user="member.user" />
-              <span class="list-row__body">
-                <strong>{{ userName(member.user) }}</strong>
-                <small>{{ member.user?.email }}</small>
-              </span>
+              <span class="list-row__body"
+                ><strong>{{ userName(member.user) }}</strong
+                ><small>{{ member.user?.email }}</small></span
+              >
               <StatusBadge :role="member.projectRole" />
               <StatusBadge v-if="!member.active" :active="false" />
             </button>
+            <button
+              v-if="canManageMembers"
+              type="button"
+              class="list-row list-row--create"
+              @click="openMemberCreate"
+            >
+              <span class="list-row__icon"><Plus :size="17" /></span>
+              <span class="list-row__body"
+                ><strong>Создать</strong><small>Добавить участника в команду</small></span
+              >
+            </button>
           </div>
-          <EmptyState
-            v-else
-            title="Команда не назначена"
-            description="Добавьте сотрудников по их ID и назначьте проектные роли."
-          />
         </article>
 
         <article class="card">
@@ -368,34 +378,28 @@ onMounted(load)
               size="sm"
               @click="openTimesheetCreate"
             >
-              Создать
-              <template #icon><Plus :size="15" /></template>
+              Создать<template #icon><Plus :size="15" /></template>
             </AppButton>
           </header>
           <div v-if="timesheets.length" class="list">
             <RouterLink
               v-for="sheet in timesheets"
               :key="sheet.id"
-              :to="{
-                name: 'timesheet',
-                params: {
-                  workspaceId,
-                  projectId,
-                  timesheetId: sheet.id,
-                },
-              }"
+              :to="{ name: 'timesheet', params: { workspaceId, projectId, timesheetId: sheet.id } }"
               class="list-row list-row--link"
             >
               <span class="list-row__icon"><Clock3 :size="17" /></span>
-              <span class="list-row__body">
-                <strong>{{ userName(sheet.createdBy) }}</strong>
-                <small
+              <span class="list-row__body"
+                ><strong>{{ userName(sheet.createdBy) }}</strong
+                ><small
                   >{{ formatDate(sheet.periodStart) }} — {{ formatDate(sheet.periodEnd) }}</small
-                >
-              </span>
+                ></span
+              >
               <span class="list-row__metric">{{ sheet.entriesCount ?? 0 }} записей</span>
-              <StatusBadge :status="sheet.status" />
-              <ArrowUpRight :size="16" class="list-row__chevron" />
+              <StatusBadge :status="sheet.status" /><ArrowUpRight
+                :size="16"
+                class="list-row__chevron"
+              />
             </RouterLink>
           </div>
           <EmptyState
@@ -412,8 +416,7 @@ onMounted(load)
           <p>Проект исчезнет из активных списков. История табелей сохранится.</p>
         </div>
         <AppButton variant="danger" @click="archiveProject">
-          Архивировать
-          <template #icon><Archive :size="16" /></template>
+          Архивировать<template #icon><Archive :size="16" /></template>
         </AppButton>
       </section>
     </template>
@@ -421,29 +424,21 @@ onMounted(load)
     <AppModal
       :open="memberModalOpen"
       title="Добавить участника"
-      description="Backend пока не предоставляет список сотрудников, поэтому нужен ID пользователя."
+      description="Выберите сотрудника рабочей области и назначьте проектную роль."
       @close="memberModalOpen = false"
     >
       <form class="form-stack" @submit.prevent="createMember">
-        <div class="alert">
-          <UsersRound :size="17" />
-          <span>ID можно получить у администратора или из существующего профиля участника.</span>
-        </div>
-        <FormField
-          label="ID пользователя"
-          for-id="member-user-id"
-          :error="fieldErrors.user_id?.[0]"
-        >
-          <input
-            id="member-user-id"
-            v-model.trim="memberForm.userId"
-            class="input input--mono"
-            type="number"
-            min="1"
-            placeholder="Например, 42"
-            required
-          />
+        <FormField label="Сотрудник" for-id="member-user-id" :error="fieldErrors.user_id?.[0]">
+          <select id="member-user-id" v-model="memberForm.userId" class="input select" required>
+            <option value="" disabled>Выберите сотрудника</option>
+            <option v-for="user in availableUsers" :key="user.id" :value="String(user.id)">
+              {{ userName(user) }} · {{ user.email }}
+            </option>
+          </select>
         </FormField>
+        <p v-if="!availableUsers.length" class="form-note">
+          Все доступные сотрудники уже добавлены в проект.
+        </p>
         <FormField label="Роль" for-id="member-role" :error="fieldErrors.project_role?.[0]">
           <select id="member-role" v-model="memberForm.projectRole" class="input select">
             <option v-for="(label, value) in projectRoleLabels" :key="value" :value="value">
@@ -451,18 +446,26 @@ onMounted(load)
             </option>
           </select>
         </FormField>
-        <label class="switch-row">
-          <input v-model="memberForm.active" type="checkbox" />
-          <span><strong>Активный участник</strong><small>Получает доступ к проекту</small></span>
-        </label>
+        <label class="switch-row"
+          ><input v-model="memberForm.active" type="checkbox" /><span
+            ><strong>Активный участник</strong><small>Получает доступ к проекту</small></span
+          ></label
+        >
         <div class="form-actions">
-          <AppButton variant="secondary" @click="memberModalOpen = false">Отмена</AppButton>
-          <AppButton type="submit" :loading="saving">Добавить</AppButton>
+          <AppButton variant="secondary" @click="memberModalOpen = false">Отмена</AppButton
+          ><AppButton type="submit" :loading="saving" :disabled="!availableUsers.length">
+            Добавить
+          </AppButton>
         </div>
       </form>
     </AppModal>
 
-    <AppModal :open="timesheetModalOpen" title="Новый табель" @close="timesheetModalOpen = false">
+    <AppModal
+      :open="timesheetModalOpen"
+      title="Новый табель"
+      description="После создания каждый день периода будет добавлен с нулевыми часами."
+      @close="timesheetModalOpen = false"
+    >
       <form class="form-stack" @submit.prevent="createTimesheet">
         <div class="form-grid">
           <FormField
@@ -489,8 +492,8 @@ onMounted(load)
           </FormField>
         </div>
         <div class="form-actions">
-          <AppButton variant="secondary" @click="timesheetModalOpen = false">Отмена</AppButton>
-          <AppButton type="submit" :loading="saving">Создать черновик</AppButton>
+          <AppButton variant="secondary" @click="timesheetModalOpen = false">Отмена</AppButton
+          ><AppButton type="submit" :loading="saving">Создать черновик</AppButton>
         </div>
       </form>
     </AppModal>
@@ -515,15 +518,16 @@ onMounted(load)
             </option>
           </select>
         </FormField>
-        <label class="switch-row">
-          <input v-model="memberForm.active" type="checkbox" />
-          <span><strong>Активный участник</strong><small>Сохраняет доступ к проекту</small></span>
-        </label>
+        <label class="switch-row"
+          ><input v-model="memberForm.active" type="checkbox" /><span
+            ><strong>Активный участник</strong><small>Сохраняет доступ к проекту</small></span
+          ></label
+        >
         <div class="form-actions form-actions--spread">
           <AppButton variant="danger" :loading="saving" @click="removeMember">Удалить</AppButton>
           <div class="form-actions">
-            <AppButton variant="secondary" @click="editMemberOpen = false">Отмена</AppButton>
-            <AppButton type="submit" :loading="saving">Сохранить</AppButton>
+            <AppButton variant="secondary" @click="editMemberOpen = false">Отмена</AppButton
+            ><AppButton type="submit" :loading="saving">Сохранить</AppButton>
           </div>
         </div>
       </form>
@@ -536,18 +540,9 @@ onMounted(load)
       @close="editProjectOpen = false"
     >
       <form class="form-stack" @submit.prevent="updateProject">
-        <div class="form-grid">
-          <FormField label="Название" for-id="edit-project-name" :error="fieldErrors.name?.[0]">
-            <input id="edit-project-name" v-model.trim="projectForm.name" class="input" />
-          </FormField>
-          <FormField label="Slug" for-id="edit-project-slug" :error="fieldErrors.slug?.[0]">
-            <input
-              id="edit-project-slug"
-              v-model.trim="projectForm.slug"
-              class="input input--mono"
-            />
-          </FormField>
-        </div>
+        <FormField label="Название" for-id="edit-project-name" :error="fieldErrors.name?.[0]">
+          <input id="edit-project-name" v-model.trim="projectForm.name" class="input" />
+        </FormField>
         <FormField
           label="Описание"
           for-id="edit-project-description"
@@ -586,13 +581,14 @@ onMounted(load)
             />
           </FormField>
         </div>
-        <label class="switch-row">
-          <input v-model="projectForm.active" type="checkbox" />
-          <span><strong>Активный проект</strong><small>Доступен участникам</small></span>
-        </label>
+        <label class="switch-row"
+          ><input v-model="projectForm.active" type="checkbox" /><span
+            ><strong>Активный проект</strong><small>Доступен участникам</small></span
+          ></label
+        >
         <div class="form-actions">
-          <AppButton variant="secondary" @click="editProjectOpen = false">Отмена</AppButton>
-          <AppButton type="submit" :loading="saving">Сохранить</AppButton>
+          <AppButton variant="secondary" @click="editProjectOpen = false">Отмена</AppButton
+          ><AppButton type="submit" :loading="saving">Сохранить</AppButton>
         </div>
       </form>
     </AppModal>

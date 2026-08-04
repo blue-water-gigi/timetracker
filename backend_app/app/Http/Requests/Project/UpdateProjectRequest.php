@@ -8,7 +8,6 @@ use App\Models\Project;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class UpdateProjectRequest extends FormRequest
@@ -36,7 +35,7 @@ class UpdateProjectRequest extends FormRequest
             'updated_by_user_id' => ['prohibited'],
             'name' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'sometimes', 'string', 'max:500'],
-            'slug' => ['sometimes', 'string', Rule::unique('projects', 'slug')->ignore($project)],
+            'slug' => ['prohibited'],
             'active' => ['sometimes', 'boolean'],
             'period_start' => ['nullable', 'sometimes', 'date'],
             'period_end' => ['nullable', 'sometimes', 'date'],
@@ -55,13 +54,13 @@ class UpdateProjectRequest extends FormRequest
                 $hasPeriodStart = array_key_exists('period_start', $attributes);
                 $hasPeriodEnd = array_key_exists('period_end', $attributes);
 
-                if (! $hasPeriodStart && ! $hasPeriodEnd) {
+                if (!$hasPeriodStart && !$hasPeriodEnd) {
                     return;
                 }
 
                 $project = $this->route('project');
 
-                if (! $project instanceof Project) {
+                if (!$project instanceof Project) {
                     return;
                 }
 

@@ -11,6 +11,8 @@ import {
   LogOut,
   Menu,
   PanelLeftClose,
+  PanelLeftOpen,
+  Settings,
   X,
 } from '@lucide/vue'
 
@@ -25,6 +27,7 @@ const route = useRoute()
 const router = useRouter()
 const { show } = useToast()
 const sidebarOpen = ref(false)
+const sidebarCollapsed = ref(localStorage.getItem('sidebar-collapsed') === 'true')
 
 const navigation = computed(() => {
   const items = [
@@ -41,9 +44,15 @@ const navigation = computed(() => {
   return items
 })
 
-const currentTitle = computed(
-  () => navigation.value.find((item) => item.name === route.name)?.label ?? 'Рабочая область',
-)
+const currentTitle = computed(() => {
+  if (route.name === 'profile') return 'Профиль'
+  return navigation.value.find((item) => item.name === route.name)?.label ?? 'Рабочая область'
+})
+
+function toggleSidebar(): void {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+  localStorage.setItem('sidebar-collapsed', String(sidebarCollapsed.value))
+}
 
 async function logout(): Promise<void> {
   try {
@@ -56,7 +65,7 @@ async function logout(): Promise<void> {
 </script>
 
 <template>
-  <div class="app-shell">
+  <div class="app-shell" :class="{ 'app-shell--collapsed': sidebarCollapsed }">
     <Transition name="fade">
       <button
         v-if="sidebarOpen"
@@ -70,9 +79,18 @@ async function logout(): Promise<void> {
     <aside class="sidebar" :class="{ 'sidebar--open': sidebarOpen }">
       <div class="sidebar__brand">
         <RouterLink :to="{ name: 'dashboard' }" class="brand-mark" @click="sidebarOpen = false">
-          <span class="brand-mark__symbol"><Clock3 :size="18" /></span>
-          <span>Time Tracker</span>
+          <img class="brand-mark__logo" src="/logo_grey.svg" alt="Time Tracker" />
         </RouterLink>
+        <button
+          type="button"
+          class="icon-button sidebar__collapse"
+          :aria-label="sidebarCollapsed ? 'Развернуть панель' : 'Свернуть панель'"
+          :title="sidebarCollapsed ? 'Развернуть' : 'Свернуть'"
+          @click="toggleSidebar"
+        >
+          <PanelLeftOpen v-if="sidebarCollapsed" :size="18" />
+          <PanelLeftClose v-else :size="18" />
+        </button>
         <button
           type="button"
           class="icon-button sidebar__mobile-close"
@@ -90,6 +108,8 @@ async function logout(): Promise<void> {
           :key="item.name"
           :to="{ name: item.name }"
           class="nav-link"
+          :class="{ 'nav-link--active': route.name === item.name }"
+          :title="sidebarCollapsed ? item.label : undefined"
           @click="sidebarOpen = false"
         >
           <component :is="item.icon" :size="17" />
@@ -99,16 +119,19 @@ async function logout(): Promise<void> {
       </nav>
 
       <footer class="sidebar__footer">
-        <div class="account-card">
-          <UserAvatar :user="auth.user" />
-          <div class="account-card__text">
-            <strong>{{ userName(auth.user) }}</strong>
-            <span>{{ auth.isAdmin ? 'Администратор' : 'Сотрудник' }}</span>
-          </div>
-          <button class="icon-button" type="button" aria-label="Выйти" @click="logout">
-            <LogOut :size="17" />
-          </button>
-        </div>
+        <RouterLink
+          :to="{ name: 'profile' }"
+          class="sidebar-action"
+          :class="{ 'sidebar-action--active': route.name === 'profile' }"
+          title="Настройки профиля"
+        >
+          <Settings :size="17" />
+          <span>Настройки</span>
+        </RouterLink>
+        <button type="button" class="sidebar-action" title="Выйти" @click="logout">
+          <LogOut :size="17" />
+          <span>Выйти</span>
+        </button>
       </footer>
     </aside>
 
@@ -128,8 +151,13 @@ async function logout(): Promise<void> {
           <strong>{{ currentTitle }}</strong>
         </div>
         <div class="topbar__spacer" />
-        <span class="topbar__role">{{ auth.isAdmin ? 'Admin' : 'Employee' }}</span>
-        <PanelLeftClose :size="17" class="topbar__decorative-icon" />
+        <RouterLink :to="{ name: 'profile' }" class="topbar-account">
+          <div class="topbar-account__text">
+            <strong>{{ userName(auth.user) }}</strong>
+            <span>{{ auth.isAdmin ? 'Администратор' : 'Сотрудник' }}</span>
+          </div>
+          <UserAvatar :user="auth.user" />
+        </RouterLink>
       </header>
 
       <main class="page">

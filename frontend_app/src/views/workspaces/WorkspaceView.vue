@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Archive,
@@ -14,7 +14,6 @@ import {
 
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
-import EmptyState from '@/components/ui/EmptyState.vue'
 import FormField from '@/components/ui/FormField.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
@@ -23,7 +22,7 @@ import { useToast } from '@/composables/use-toast'
 import { api } from '@/services/api'
 import { ApiError, firstError } from '@/services/api-client'
 import type { Project, Workspace } from '@/types/domain'
-import { formatDate, slugify } from '@/utils/formatters'
+import { formatDate } from '@/utils/formatters'
 
 const route = useRoute()
 const router = useRouter()
@@ -39,28 +38,14 @@ const projectModalOpen = ref(false)
 const editModalOpen = ref(false)
 const joinCode = ref<string>()
 const fieldErrors = ref<Record<string, string[]>>({})
-const projectSlugTouched = ref(false)
 const projectForm = reactive({
   name: '',
-  slug: '',
   description: '',
   active: true,
   periodStart: '',
   periodEnd: '',
 })
-const workspaceForm = reactive({
-  name: '',
-  slug: '',
-  description: '',
-  active: true,
-})
-
-watch(
-  () => projectForm.name,
-  (name) => {
-    if (!projectSlugTouched.value) projectForm.slug = slugify(name)
-  },
-)
+const workspaceForm = reactive({ name: '', description: '', active: true })
 
 async function load(): Promise<void> {
   loading.value = true
@@ -81,13 +66,11 @@ async function load(): Promise<void> {
 function openProjectCreate(): void {
   Object.assign(projectForm, {
     name: '',
-    slug: '',
     description: '',
     active: true,
     periodStart: '',
     periodEnd: '',
   })
-  projectSlugTouched.value = false
   fieldErrors.value = {}
   projectModalOpen.value = true
 }
@@ -96,7 +79,6 @@ function openEdit(): void {
   if (!workspace.value) return
   Object.assign(workspaceForm, {
     name: workspace.value.name,
-    slug: workspace.value.slug,
     description: workspace.value.description ?? '',
     active: workspace.value.active,
   })
@@ -110,7 +92,6 @@ async function createProject(): Promise<void> {
   try {
     const response = await api.createProject(workspaceId.value, {
       name: projectForm.name,
-      slug: projectForm.slug,
       description: projectForm.description || null,
       active: projectForm.active,
       period_start: projectForm.periodStart || null,
@@ -195,7 +176,7 @@ onMounted(load)
       <PageHeader
         eyebrow="Рабочая область"
         :title="workspace.name"
-        :description="workspace.description || `/${workspace.slug}`"
+        :description="workspace.description || 'Описание не добавлено'"
       >
         <template #actions>
           <AppButton variant="outline" :loading="rotating" @click="rotateJoinCode">
@@ -205,10 +186,6 @@ onMounted(load)
           <AppButton variant="secondary" @click="openEdit">
             Настройки
             <template #icon><Pencil :size="16" /></template>
-          </AppButton>
-          <AppButton @click="openProjectCreate">
-            Новый проект
-            <template #icon><Plus :size="17" /></template>
           </AppButton>
         </template>
       </PageHeader>
@@ -237,39 +214,29 @@ onMounted(load)
             <p class="eyebrow">Портфель</p>
             <h2>Проекты</h2>
           </div>
-          <AppButton variant="secondary" size="sm" @click="openProjectCreate">
-            Добавить
-            <template #icon><Plus :size="15" /></template>
-          </AppButton>
         </header>
 
-        <div v-if="projects.length" class="list">
+        <div class="list">
           <RouterLink
             v-for="project in projects"
             :key="project.id"
-            :to="{
-              name: 'project',
-              params: { workspaceId: workspace.id, projectId: project.id },
-            }"
+            :to="{ name: 'project', params: { workspaceId: workspace.id, projectId: project.id } }"
             class="list-row list-row--link"
           >
             <span class="list-row__icon"><FolderKanban :size="17" /></span>
             <span class="list-row__body">
               <strong>{{ project.name }}</strong>
-              <small>{{ project.description || `/${project.slug}` }}</small>
+              <small>{{ project.description || 'Описание не добавлено' }}</small>
             </span>
             <span class="list-row__metric">{{ project.membershipsCount ?? 0 }} участников</span>
             <StatusBadge :active="project.active" />
             <ArrowUpRight :size="16" class="list-row__chevron" />
           </RouterLink>
+          <button type="button" class="list-row list-row--create" @click="openProjectCreate">
+            <span class="list-row__icon"><Plus :size="17" /></span>
+            <span class="list-row__body"><strong>Создать</strong><small>Новый проект</small></span>
+          </button>
         </div>
-        <EmptyState
-          v-else
-          title="Проектов пока нет"
-          description="Создайте проект, добавьте команду и начните учитывать время."
-        >
-          <AppButton @click="openProjectCreate">Создать проект</AppButton>
-        </EmptyState>
       </section>
 
       <section class="danger-zone">
@@ -292,27 +259,15 @@ onMounted(load)
       @close="projectModalOpen = false"
     >
       <form class="form-stack" @submit.prevent="createProject">
-        <div class="form-grid">
-          <FormField label="Название" for-id="project-name" :error="fieldErrors.name?.[0]">
-            <input
-              id="project-name"
-              v-model.trim="projectForm.name"
-              class="input"
-              placeholder="Новый продукт"
-              required
-            />
-          </FormField>
-          <FormField label="Slug" for-id="project-slug" :error="fieldErrors.slug?.[0]">
-            <input
-              id="project-slug"
-              v-model.trim="projectForm.slug"
-              class="input input--mono"
-              placeholder="new-product"
-              required
-              @input="projectSlugTouched = true"
-            />
-          </FormField>
-        </div>
+        <FormField label="Название" for-id="project-name" :error="fieldErrors.name?.[0]">
+          <input
+            id="project-name"
+            v-model.trim="projectForm.name"
+            class="input"
+            placeholder="Новый продукт"
+            required
+          />
+        </FormField>
         <FormField
           label="Описание"
           for-id="project-description"
@@ -356,13 +311,6 @@ onMounted(load)
         <FormField label="Название" for-id="edit-workspace-name" :error="fieldErrors.name?.[0]">
           <input id="edit-workspace-name" v-model.trim="workspaceForm.name" class="input" />
         </FormField>
-        <FormField label="Slug" for-id="edit-workspace-slug" :error="fieldErrors.slug?.[0]">
-          <input
-            id="edit-workspace-slug"
-            v-model.trim="workspaceForm.slug"
-            class="input input--mono"
-          />
-        </FormField>
         <FormField
           label="Описание"
           for-id="edit-workspace-description"
@@ -393,15 +341,12 @@ onMounted(load)
       @close="joinCode = undefined"
     >
       <div class="join-code">
-        <KeyRound :size="20" />
-        <code>{{ joinCode }}</code>
+        <KeyRound :size="20" /><code>{{ joinCode }}</code>
         <button type="button" class="icon-button" aria-label="Скопировать" @click="copyJoinCode">
           <Copy :size="17" />
         </button>
       </div>
-      <div class="form-actions">
-        <AppButton @click="copyJoinCode">Скопировать код</AppButton>
-      </div>
+      <div class="form-actions"><AppButton @click="copyJoinCode">Скопировать код</AppButton></div>
     </AppModal>
   </div>
 </template>

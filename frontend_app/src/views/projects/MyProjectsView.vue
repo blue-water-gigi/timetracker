@@ -32,7 +32,7 @@ async function load(): Promise<void> {
       )
       projects.value = projectResponses.flatMap((response) => response.data)
     } else if (auth.user?.workspace?.id) {
-      projects.value = (await api.projects(auth.user.workspace.id, 1, true)).data
+      projects.value = (await api.projects(auth.user.workspace.id)).data
     }
   } catch (error) {
     show(firstError(error) ?? 'Не удалось загрузить проекты.', 'error')

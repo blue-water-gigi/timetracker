@@ -131,3 +131,4 @@ composer.lock
 *.tar.gz
 *.rar
 
+design/

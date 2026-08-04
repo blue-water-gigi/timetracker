@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowRight, Clock3, ShieldCheck } from '@lucide/vue'
+import { ArrowRight, Eye, EyeOff, ShieldCheck } from '@lucide/vue'
 
 import AppButton from '@/components/ui/AppButton.vue'
 import FormField from '@/components/ui/FormField.vue'
@@ -11,11 +11,9 @@ import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
-const form = reactive({
-  email: '',
-  password: '',
-})
+const form = reactive({ email: '', password: '' })
 const error = ref<string>()
+const passwordVisible = ref(false)
 
 async function submit(): Promise<void> {
   error.value = undefined
@@ -34,8 +32,7 @@ async function submit(): Promise<void> {
   <main class="auth-page">
     <section class="auth-story">
       <RouterLink to="/" class="brand-mark brand-mark--light">
-        <span class="brand-mark__symbol brand-mark__symbol--inverse"><Clock3 :size="18" /></span>
-        <span>Time Tracker</span>
+        <img class="brand-mark__logo" src="/logo_white.svg" alt="Time Tracker" />
       </RouterLink>
       <div class="auth-story__content">
         <p class="eyebrow eyebrow--inverse">Учёт без лишнего шума</p>
@@ -61,28 +58,45 @@ async function submit(): Promise<void> {
         <form class="form-stack" novalidate @submit.prevent="submit">
           <div v-if="error" class="alert alert--error" role="alert">{{ error }}</div>
 
-          <FormField label="Электронная почта" for-id="email">
+          <FormField label="Электронная почта" for-id="email" floating>
             <input
               id="email"
               v-model.trim="form.email"
               class="input"
               type="email"
               autocomplete="email"
-              placeholder="name@company.ru"
+              placeholder=" "
               required
             />
           </FormField>
 
-          <FormField label="Пароль" for-id="password">
+          <FormField
+            label="Пароль"
+            for-id="password"
+            floating
+            help="Введите пароль от аккаунта. Никому не сообщайте его."
+          >
             <input
               id="password"
               v-model="form.password"
-              class="input"
-              type="password"
+              class="input input--with-actions"
+              :type="passwordVisible ? 'text' : 'password'"
               autocomplete="current-password"
-              placeholder="Введите пароль"
+              placeholder=" "
               required
             />
+            <template #trailing>
+              <button
+                type="button"
+                class="field__action"
+                :aria-label="passwordVisible ? 'Скрыть пароль' : 'Показать пароль'"
+                :aria-pressed="passwordVisible"
+                @click="passwordVisible = !passwordVisible"
+              >
+                <EyeOff v-if="passwordVisible" :size="17" />
+                <Eye v-else :size="17" />
+              </button>
+            </template>
           </FormField>
 
           <AppButton type="submit" :loading="auth.busy" class="button--full">

@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { ArrowUpRight, Building2, Plus } from '@lucide/vue'
 
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
-import EmptyState from '@/components/ui/EmptyState.vue'
 import FormField from '@/components/ui/FormField.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
@@ -12,7 +11,7 @@ import { useToast } from '@/composables/use-toast'
 import { api } from '@/services/api'
 import { ApiError, firstError } from '@/services/api-client'
 import type { Organization } from '@/types/domain'
-import { formatDate, slugify } from '@/utils/formatters'
+import { formatDate } from '@/utils/formatters'
 
 const { show } = useToast()
 const loading = ref(true)
@@ -20,17 +19,7 @@ const saving = ref(false)
 const modalOpen = ref(false)
 const organizations = ref<Organization[]>([])
 const fieldErrors = ref<Record<string, string[]>>({})
-const form = reactive({ name: '', slug: '' })
-const slugTouched = ref(false)
-
-watch(
-  () => form.name,
-  (name) => {
-    if (!slugTouched.value) {
-      form.slug = slugify(name)
-    }
-  },
-)
+const form = reactive({ name: '' })
 
 async function load(): Promise<void> {
   loading.value = true
@@ -44,8 +33,7 @@ async function load(): Promise<void> {
 }
 
 function openCreate(): void {
-  Object.assign(form, { name: '', slug: '' })
-  slugTouched.value = false
+  form.name = ''
   fieldErrors.value = {}
   modalOpen.value = true
 }
@@ -54,14 +42,12 @@ async function create(): Promise<void> {
   saving.value = true
   fieldErrors.value = {}
   try {
-    const organization = (await api.createOrganization(form)).data
+    const organization = (await api.createOrganization({ name: form.name })).data
     organizations.value.unshift(organization)
     modalOpen.value = false
     show('Организация создана.', 'success')
   } catch (error) {
-    if (error instanceof ApiError) {
-      fieldErrors.value = error.validationErrors
-    }
+    if (error instanceof ApiError) fieldErrors.value = error.validationErrors
     show(firstError(error) ?? 'Не удалось создать организацию.', 'error')
   } finally {
     saving.value = false
@@ -77,18 +63,11 @@ onMounted(load)
       eyebrow="Структура компании"
       title="Организации"
       description="Управляйте изолированными компаниями и их рабочими областями."
-    >
-      <template #actions>
-        <AppButton @click="openCreate">
-          Новая организация
-          <template #icon><Plus :size="17" /></template>
-        </AppButton>
-      </template>
-    </PageHeader>
+    />
 
     <LoadingState v-if="loading" />
 
-    <section v-else-if="organizations.length" class="entity-grid">
+    <section v-else class="entity-grid">
       <RouterLink
         v-for="organization in organizations"
         :key="organization.id"
@@ -101,7 +80,7 @@ onMounted(load)
         </div>
         <div>
           <h2>{{ organization.name }}</h2>
-          <p>{{ organization.slug }}</p>
+          <p>Организация и её рабочие области</p>
         </div>
         <div class="entity-card__metrics">
           <span
@@ -113,23 +92,17 @@ onMounted(load)
         </div>
         <small>Создана {{ formatDate(organization.timestamps.createdAt) }}</small>
       </RouterLink>
-    </section>
 
-    <EmptyState
-      v-else
-      title="Создайте первую организацию"
-      description="Она станет верхним уровнем для рабочих областей, проектов и команды."
-    >
-      <AppButton @click="openCreate">
-        Создать организацию
-        <template #icon><Plus :size="17" /></template>
-      </AppButton>
-    </EmptyState>
+      <button type="button" class="entity-card entity-card--create" @click="openCreate">
+        <span class="create-card__icon"><Plus :size="22" /></span>
+        <strong>Новая организация</strong>
+      </button>
+    </section>
 
     <AppModal
       :open="modalOpen"
       title="Новая организация"
-      description="Название можно изменить позже. Slug должен быть уникальным."
+      description="Укажите понятное название компании. Его можно изменить позже."
       @close="modalOpen = false"
     >
       <form class="form-stack" @submit.prevent="create">
@@ -140,16 +113,6 @@ onMounted(load)
             class="input"
             placeholder="Acme Studio"
             required
-          />
-        </FormField>
-        <FormField label="Slug" for-id="organization-slug" :error="fieldErrors.slug?.[0]">
-          <input
-            id="organization-slug"
-            v-model.trim="form.slug"
-            class="input input--mono"
-            placeholder="acme-studio"
-            required
-            @input="slugTouched = true"
           />
         </FormField>
         <div class="form-actions">

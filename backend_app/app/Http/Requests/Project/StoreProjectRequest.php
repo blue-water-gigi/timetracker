@@ -6,7 +6,6 @@ namespace App\Http\Requests\Project;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreProjectRequest extends FormRequest
 {
@@ -31,7 +30,7 @@ class StoreProjectRequest extends FormRequest
             'updated_by_user_id' => ['prohibited'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:500'],
-            'slug' => ['required', 'string', Rule::unique('projects', 'slug')],
+            'slug' => ['prohibited'],
             'active' => ['sometimes', 'boolean'],
             'period_start' => ['nullable', 'required_with:period_end', 'date'],
             'period_end' => ['nullable', 'required_with:period_start', 'date', 'after_or_equal:period_start'],

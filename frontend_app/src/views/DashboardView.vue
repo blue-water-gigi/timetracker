@@ -55,7 +55,7 @@ async function loadEmployeeDashboard(): Promise<void> {
     return
   }
 
-  projects.value = (await api.projects(workspaceId, 1, true)).data
+  projects.value = (await api.projects(workspaceId)).data
   timesheets.value = await projectTimesheets(projects.value)
 }
 

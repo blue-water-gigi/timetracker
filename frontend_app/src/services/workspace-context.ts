@@ -4,7 +4,7 @@ import type { Project, Timesheet, User } from '@/types/domain'
 export async function accessibleProjects(user: User): Promise<Project[]> {
   if (user.systemRole === 'employee') {
     const workspaceId = user.workspace?.id
-    return workspaceId ? (await api.projects(workspaceId, 1, true)).data : []
+    return workspaceId ? (await api.projects(workspaceId)).data : []
   }
 
   const organizations = (await api.organizations()).data

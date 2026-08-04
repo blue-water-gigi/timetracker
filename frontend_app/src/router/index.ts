@@ -75,6 +75,11 @@ export const router = createRouter({
           name: 'reviews',
           component: () => import('@/views/timesheets/ReviewInboxView.vue'),
         },
+        {
+          path: 'profile',
+          name: 'profile',
+          component: () => import('@/views/ProfileView.vue'),
+        },
       ],
     },
     {

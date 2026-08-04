@@ -59,10 +59,7 @@ onMounted(load)
           <strong>{{ reviewQueue.length }}</strong>
           <span>табелей ждут решения</span>
         </div>
-        <p>
-          В списке только отправленные табели доступных проектов. Право на решение окончательно
-          проверяет backend.
-        </p>
+        <p>Здесь собраны табели команды, которые ожидают вашего внимания.</p>
       </section>
 
       <section v-if="reviewQueue.length" class="card">

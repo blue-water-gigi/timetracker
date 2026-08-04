@@ -101,19 +101,16 @@ export interface Timesheet {
 
 export interface OrganizationPayload {
   name: string
-  slug: string
 }
 
 export interface WorkspacePayload {
   name: string
-  slug: string
   description?: string | null
   active?: boolean
 }
 
 export interface ProjectPayload {
   name: string
-  slug: string
   description?: string | null
   active?: boolean
   period_start?: string | null

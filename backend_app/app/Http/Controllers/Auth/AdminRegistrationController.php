@@ -22,19 +22,18 @@ class AdminRegistrationController extends Controller
      */
     public function __invoke(RegisterAdminRequest $request): JsonResource
     {
-        $validated = $request->validated();
-
         try {
             /**
              * @var User $user
              */
-            $user = DB::transaction(function () use ($validated) {
-                $user = User::create($validated);
+            $user = DB::transaction(function () use ($request) {
+                $user = User::make();
 
                 $user->system_role = SystemRole::ADMINISTRATOR;
                 $user->workspace_id = null;
 
-                $user->saveOrFail();
+                $user->forceFill($request->validated())
+                    ->saveOrFail();
 
                 return $user;
             });

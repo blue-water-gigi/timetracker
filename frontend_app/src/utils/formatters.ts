@@ -1,21 +1,22 @@
 import type { ProjectRole, TimesheetStatus, User } from '@/types/domain'
 
 const dateFormatter = new Intl.DateTimeFormat('ru-RU', {
-  day: 'numeric',
-  month: 'short',
+  day: '2-digit',
+  month: '2-digit',
   year: 'numeric',
 })
 
 const dateTimeFormatter = new Intl.DateTimeFormat('ru-RU', {
-  day: 'numeric',
-  month: 'short',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
   hour: '2-digit',
   minute: '2-digit',
 })
 
 export const projectRoleLabels: Record<ProjectRole, string> = {
   participant: 'Участник',
-  senior: 'Старший',
+  senior: 'Senior',
   manager: 'Менеджер',
   project_lead: 'Руководитель',
 }
@@ -74,13 +75,4 @@ export function formatHours(value: number): string {
     minimumFractionDigits: value % 1 === 0 ? 0 : 1,
     maximumFractionDigits: 2,
   }).format(value)
-}
-
-export function slugify(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[^\p{Letter}\p{Number}]+/gu, '-')
-    .replace(/^-+|-+$/g, '')
 }

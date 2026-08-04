@@ -1,11 +1,19 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Archive, ArrowUpRight, Building2, Copy, KeyRound, Pencil, Plus } from '@lucide/vue'
+import {
+  Archive,
+  ArrowUpRight,
+  Building2,
+  CircleHelp,
+  Copy,
+  KeyRound,
+  Pencil,
+  Plus,
+} from '@lucide/vue'
 
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
-import EmptyState from '@/components/ui/EmptyState.vue'
 import FormField from '@/components/ui/FormField.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
@@ -14,7 +22,7 @@ import { useToast } from '@/composables/use-toast'
 import { api } from '@/services/api'
 import { ApiError, firstError } from '@/services/api-client'
 import type { Organization, Workspace } from '@/types/domain'
-import { formatDate, slugify } from '@/utils/formatters'
+import { formatDate, userName } from '@/utils/formatters'
 
 const route = useRoute()
 const router = useRouter()
@@ -28,23 +36,8 @@ const workspaceModalOpen = ref(false)
 const editModalOpen = ref(false)
 const joinCode = ref<string>()
 const fieldErrors = ref<Record<string, string[]>>({})
-const workspaceForm = reactive({
-  name: '',
-  slug: '',
-  description: '',
-  active: true,
-})
-const organizationForm = reactive({ name: '', slug: '' })
-const workspaceSlugTouched = ref(false)
-
-watch(
-  () => workspaceForm.name,
-  (name) => {
-    if (!workspaceSlugTouched.value) {
-      workspaceForm.slug = slugify(name)
-    }
-  },
-)
+const workspaceForm = reactive({ name: '', description: '', active: true })
+const organizationForm = reactive({ name: '' })
 
 async function load(): Promise<void> {
   loading.value = true
@@ -63,18 +56,14 @@ async function load(): Promise<void> {
 }
 
 function openWorkspaceCreate(): void {
-  Object.assign(workspaceForm, { name: '', slug: '', description: '', active: true })
-  workspaceSlugTouched.value = false
+  Object.assign(workspaceForm, { name: '', description: '', active: true })
   fieldErrors.value = {}
   workspaceModalOpen.value = true
 }
 
 function openEdit(): void {
   if (!organization.value) return
-  Object.assign(organizationForm, {
-    name: organization.value.name,
-    slug: organization.value.slug,
-  })
+  organizationForm.name = organization.value.name
   fieldErrors.value = {}
   editModalOpen.value = true
 }
@@ -105,7 +94,7 @@ async function updateOrganization(): Promise<void> {
   fieldErrors.value = {}
   try {
     organization.value = (
-      await api.updateOrganization(organization.value.id, organizationForm)
+      await api.updateOrganization(organization.value.id, { name: organizationForm.name })
     ).data
     editModalOpen.value = false
     show('Изменения сохранены.', 'success')
@@ -150,16 +139,12 @@ onMounted(load)
       <PageHeader
         eyebrow="Организация"
         :title="organization.name"
-        :description="`/${organization.slug} · создана ${formatDate(organization.timestamps.createdAt)}`"
+        :description="`Создана ${formatDate(organization.timestamps.createdAt)}`"
       >
         <template #actions>
           <AppButton variant="outline" @click="openEdit">
             Изменить
             <template #icon><Pencil :size="16" /></template>
-          </AppButton>
-          <AppButton @click="openWorkspaceCreate">
-            Новая область
-            <template #icon><Plus :size="17" /></template>
           </AppButton>
         </template>
       </PageHeader>
@@ -177,8 +162,8 @@ onMounted(load)
         </article>
         <article class="stat-card">
           <span class="stat-card__label">Владелец</span>
-          <strong class="stat-card__value-sm">{{ organization.owner?.email || 'Вы' }}</strong>
-          <p>Полный доступ к tenant-данным</p>
+          <strong class="stat-card__value-sm">{{ userName(organization.owner) }}</strong>
+          <p>{{ organization.owner?.email || 'Электронная почта не указана' }}</p>
         </article>
       </section>
 
@@ -188,13 +173,9 @@ onMounted(load)
             <p class="eyebrow">Команды</p>
             <h2>Рабочие области</h2>
           </div>
-          <AppButton variant="secondary" size="sm" @click="openWorkspaceCreate">
-            Добавить
-            <template #icon><Plus :size="15" /></template>
-          </AppButton>
         </header>
 
-        <div v-if="workspaces.length" class="list">
+        <div class="list">
           <RouterLink
             v-for="workspace in workspaces"
             :key="workspace.id"
@@ -207,20 +188,19 @@ onMounted(load)
             <span class="list-row__icon"><Building2 :size="17" /></span>
             <span class="list-row__body">
               <strong>{{ workspace.name }}</strong>
-              <small>{{ workspace.description || `/${workspace.slug}` }}</small>
+              <small>{{ workspace.description || 'Описание не добавлено' }}</small>
             </span>
             <span class="list-row__metric">{{ workspace.usersCount ?? 0 }} сотрудников</span>
             <StatusBadge :active="workspace.active" />
             <ArrowUpRight :size="16" class="list-row__chevron" />
           </RouterLink>
+          <button type="button" class="list-row list-row--create" @click="openWorkspaceCreate">
+            <span class="list-row__icon"><Plus :size="17" /></span>
+            <span class="list-row__body"
+              ><strong>Создать</strong><small>Новая рабочая область</small></span
+            >
+          </button>
         </div>
-        <EmptyState
-          v-else
-          title="Рабочих областей пока нет"
-          description="Создайте область, чтобы пригласить сотрудников и настроить проекты."
-        >
-          <AppButton @click="openWorkspaceCreate">Создать область</AppButton>
-        </EmptyState>
       </section>
 
       <section class="danger-zone">
@@ -238,10 +218,21 @@ onMounted(load)
     <AppModal
       :open="workspaceModalOpen"
       title="Новая рабочая область"
-      description="После создания join-код будет показан один раз."
       @close="workspaceModalOpen = false"
     >
       <form class="form-stack" @submit.prevent="createWorkspace">
+        <div class="modal-help">
+          <span class="help-tooltip">
+            <button type="button" class="help-tooltip__trigger" aria-label="О join-коде">
+              <CircleHelp :size="17" />
+            </button>
+            <span class="help-tooltip__content" role="tooltip">
+              После создания join-код будет показан только один раз. Сохраните его и отправьте
+              сотрудникам, которые должны присоединиться к этой рабочей области.
+            </span>
+          </span>
+          <span>Как сотрудники присоединятся к области?</span>
+        </div>
         <FormField label="Название" for-id="workspace-name" :error="fieldErrors.name?.[0]">
           <input
             id="workspace-name"
@@ -249,16 +240,6 @@ onMounted(load)
             class="input"
             placeholder="Команда разработки"
             required
-          />
-        </FormField>
-        <FormField label="Slug" for-id="workspace-slug" :error="fieldErrors.slug?.[0]">
-          <input
-            id="workspace-slug"
-            v-model.trim="workspaceForm.slug"
-            class="input input--mono"
-            placeholder="development"
-            required
-            @input="workspaceSlugTouched = true"
           />
         </FormField>
         <FormField
@@ -277,10 +258,10 @@ onMounted(load)
         </FormField>
         <label class="switch-row">
           <input v-model="workspaceForm.active" type="checkbox" />
-          <span>
-            <strong>Активная область</strong>
-            <small>Сотрудники смогут присоединяться и работать в проектах</small>
-          </span>
+          <span
+            ><strong>Активная область</strong
+            ><small>Сотрудники смогут присоединяться и работать в проектах</small></span
+          >
         </label>
         <div class="form-actions">
           <AppButton variant="secondary" @click="workspaceModalOpen = false">Отмена</AppButton>
@@ -294,13 +275,6 @@ onMounted(load)
         <FormField label="Название" for-id="edit-organization-name" :error="fieldErrors.name?.[0]">
           <input id="edit-organization-name" v-model.trim="organizationForm.name" class="input" />
         </FormField>
-        <FormField label="Slug" for-id="edit-organization-slug" :error="fieldErrors.slug?.[0]">
-          <input
-            id="edit-organization-slug"
-            v-model.trim="organizationForm.slug"
-            class="input input--mono"
-          />
-        </FormField>
         <div class="form-actions">
           <AppButton variant="secondary" @click="editModalOpen = false">Отмена</AppButton>
           <AppButton type="submit" :loading="saving">Сохранить</AppButton>
@@ -311,7 +285,7 @@ onMounted(load)
     <AppModal
       :open="Boolean(joinCode)"
       title="Join-код готов"
-      description="Скопируйте его сейчас: открытый код больше не показывается."
+      description="Сохраните код и отправьте его сотрудникам этой рабочей области. После закрытия он больше не показывается."
       @close="joinCode = undefined"
     >
       <div class="join-code">
@@ -320,9 +294,6 @@ onMounted(load)
         <button type="button" class="icon-button" aria-label="Скопировать" @click="copyJoinCode">
           <Copy :size="17" />
         </button>
-      </div>
-      <div class="form-actions">
-        <AppButton @click="copyJoinCode">Скопировать код</AppButton>
       </div>
     </AppModal>
   </div>

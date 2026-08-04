@@ -6,7 +6,6 @@ namespace App\Http\Requests\Organization;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreOrganizationRequest extends FormRequest
 {
@@ -20,7 +19,7 @@ class StoreOrganizationRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', Rule::unique('organizations', 'slug')],
+            'slug' => ['prohibited'],
         ];
     }
 }

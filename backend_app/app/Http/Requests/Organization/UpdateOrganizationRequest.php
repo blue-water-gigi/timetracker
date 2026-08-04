@@ -6,7 +6,6 @@ namespace App\Http\Requests\Organization;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateOrganizationRequest extends FormRequest
 {
@@ -20,13 +19,7 @@ class UpdateOrganizationRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'slug' => [
-                'sometimes',
-                'string',
-                'max:255',
-                Rule::unique('organizations', 'slug')
-                    ->ignore($this->route('organization')),
-            ],
+            'slug' => ['prohibited'],
         ];
     }
 }

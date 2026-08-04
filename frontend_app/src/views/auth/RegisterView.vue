@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowRight, Building2, Clock3, KeyRound, UserRound } from '@lucide/vue'
+import { ArrowRight, Building2, Eye, EyeOff, KeyRound, UserRound } from '@lucide/vue'
 
 import AppButton from '@/components/ui/AppButton.vue'
 import FormField from '@/components/ui/FormField.vue'
@@ -15,6 +15,7 @@ const router = useRouter()
 const accountType = ref<AccountType>('employee')
 const error = ref<string>()
 const fieldErrors = ref<Record<string, string[]>>({})
+const passwordVisible = ref(false)
 const form = reactive({
   firstName: '',
   lastName: '',
@@ -51,10 +52,8 @@ async function submit(): Promise<void> {
 
     await router.push({ name: 'dashboard' })
   } catch (caught) {
-    if (caught instanceof ApiError) {
-      fieldErrors.value = caught.validationErrors
-    }
-    error.value = firstError(caught) ?? 'Не удалось создать аккаунт.'
+    if (caught instanceof ApiError) fieldErrors.value = caught.validationErrors
+    error.value = firstError(caught) ?? 'Ошибка регистрации. Повторите позже.'
   }
 }
 </script>
@@ -63,8 +62,7 @@ async function submit(): Promise<void> {
   <main class="auth-page">
     <section class="auth-story">
       <RouterLink to="/" class="brand-mark brand-mark--light">
-        <span class="brand-mark__symbol brand-mark__symbol--inverse"><Clock3 :size="18" /></span>
-        <span>Time Tracker</span>
+        <img class="brand-mark__logo" src="/logo_white.svg" alt="Time Tracker" />
       </RouterLink>
       <div class="auth-story__content">
         <p class="eyebrow eyebrow--inverse">Начните за несколько минут</p>
@@ -88,7 +86,12 @@ async function submit(): Promise<void> {
           <p>Выберите подходящий сценарий регистрации.</p>
         </div>
 
-        <div class="segmented" role="group" aria-label="Тип аккаунта">
+        <div
+          class="segmented"
+          :class="{ 'segmented--admin': accountType === 'admin' }"
+          role="group"
+          aria-label="Тип аккаунта"
+        >
           <button
             type="button"
             :class="{ 'segmented__item--active': accountType === 'employee' }"
@@ -111,34 +114,34 @@ async function submit(): Promise<void> {
           <div v-if="error" class="alert alert--error" role="alert">{{ error }}</div>
 
           <div class="form-grid">
-            <FormField label="Имя" for-id="first-name" :error="fieldError('first_name')">
+            <FormField label="Имя" for-id="first-name" :error="fieldError('first_name')" floating>
               <input
                 id="first-name"
                 v-model.trim="form.firstName"
                 class="input"
                 autocomplete="given-name"
-                placeholder="Алексей"
+                placeholder=" "
               />
             </FormField>
-            <FormField label="Фамилия" for-id="last-name" :error="fieldError('last_name')">
+            <FormField label="Фамилия" for-id="last-name" :error="fieldError('last_name')" floating>
               <input
                 id="last-name"
                 v-model.trim="form.lastName"
                 class="input"
                 autocomplete="family-name"
-                placeholder="Смирнов"
+                placeholder=" "
               />
             </FormField>
           </div>
 
-          <FormField label="Электронная почта" for-id="email" :error="fieldError('email')">
+          <FormField label="Электронная почта" for-id="email" :error="fieldError('email')" floating>
             <input
               id="email"
               v-model.trim="form.email"
               class="input"
               type="email"
               autocomplete="email"
-              placeholder="name@company.ru"
+              placeholder=" "
               required
             />
           </FormField>
@@ -148,14 +151,15 @@ async function submit(): Promise<void> {
             label="Join-код"
             for-id="join-code"
             :error="fieldError('join_code')"
-            hint="Выдаёт администратор"
+            help="Join-код выдаёт администратор рабочей области. Скопируйте код из его сообщения без лишних пробелов."
+            floating
           >
             <input
               id="join-code"
               v-model.trim="form.joinCode"
-              class="input input--mono"
+              class="input input--with-actions"
               autocomplete="off"
-              placeholder="Вставьте код рабочей области"
+              placeholder=" "
               required
             />
           </FormField>
@@ -165,17 +169,31 @@ async function submit(): Promise<void> {
             for-id="password"
             :error="fieldError('password')"
             hint="Не менее 8 символов"
+            help="Используйте уникальный пароль длиной не менее 8 символов и никому его не сообщайте."
+            floating
           >
             <input
               id="password"
               v-model="form.password"
-              class="input"
-              type="password"
+              class="input input--with-actions"
+              :type="passwordVisible ? 'text' : 'password'"
               autocomplete="new-password"
-              placeholder="Придумайте надёжный пароль"
+              placeholder=" "
               minlength="8"
               required
             />
+            <template #trailing>
+              <button
+                type="button"
+                class="field__action"
+                :aria-label="passwordVisible ? 'Скрыть пароль' : 'Показать пароль'"
+                :aria-pressed="passwordVisible"
+                @click="passwordVisible = !passwordVisible"
+              >
+                <EyeOff v-if="passwordVisible" :size="17" />
+                <Eye v-else :size="17" />
+              </button>
+            </template>
           </FormField>
 
           <AppButton type="submit" :loading="auth.busy" class="button--full">

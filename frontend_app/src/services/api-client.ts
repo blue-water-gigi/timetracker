@@ -2,6 +2,23 @@ import type { ValidationErrors } from '@/types/api'
 
 const API_PREFIX = '/api/v1'
 
+const fieldLabels: Record<string, string> = {
+  email: 'Электронная почта',
+  password: 'Пароль',
+  first_name: 'Имя',
+  last_name: 'Фамилия',
+  join_code: 'Join-код',
+  name: 'Название',
+  description: 'Описание',
+  period_start: 'Начало периода',
+  period_end: 'Конец периода',
+  user_id: 'Участник',
+  project_role: 'Роль',
+  work_date: 'Дата',
+  hours: 'Часы',
+  review_comment: 'Комментарий',
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -21,26 +38,33 @@ function cookieValue(name: string): string | undefined {
   return item ? decodeURIComponent(item.slice(prefix.length)) : undefined
 }
 
-function errorMessage(payload: unknown, fallback: string): string {
-  if (typeof payload !== 'object' || payload === null) {
-    return fallback
-  }
+function safeMessage(status: number): string {
+  if (status === 401) return 'Неверная электронная почта или пароль.'
+  if (status === 403) return 'У вас недостаточно прав для этого действия.'
+  if (status === 404) return 'Запрошенные данные не найдены.'
+  if (status === 409) return 'Данные уже изменились. Обновите страницу и попробуйте снова.'
+  if (status === 422) return 'Проверьте заполнение полей.'
+  if (status === 429) return 'Слишком много попыток. Попробуйте позже.'
+  if (status >= 500) return 'Сервис временно недоступен. Повторите попытку позже.'
 
-  const body = payload as {
-    message?: string
-    data?: { message?: string; error?: string }
-  }
+  return 'Не удалось выполнить запрос. Попробуйте ещё раз.'
+}
 
-  return body.data?.message ?? body.data?.error ?? body.message ?? fallback
+function safeValidationErrors(errors?: ValidationErrors): ValidationErrors {
+  if (!errors) return {}
+
+  return Object.fromEntries(
+    Object.keys(errors).map((field) => [
+      field,
+      [`Проверьте поле «${fieldLabels[field] ?? 'Значение'}».`],
+    ]),
+  )
 }
 
 async function responsePayload(response: Response): Promise<unknown> {
-  if (response.status === 204) {
-    return undefined
-  }
+  if (response.status === 204) return undefined
 
   const contentType = response.headers.get('content-type')
-
   return contentType?.includes('application/json') ? response.json() : undefined
 }
 
@@ -52,14 +76,10 @@ export async function request<T>(
   const headers = new Headers(options.headers)
   headers.set('Accept', 'application/json')
 
-  if (options.body !== undefined) {
-    headers.set('Content-Type', 'application/json')
-  }
+  if (options.body !== undefined) headers.set('Content-Type', 'application/json')
 
   const csrfToken = cookieValue('XSRF-TOKEN')
-  if (csrfToken) {
-    headers.set('X-XSRF-TOKEN', csrfToken)
-  }
+  if (csrfToken) headers.set('X-XSRF-TOKEN', csrfToken)
 
   const response = await fetch(`${useApiPrefix ? API_PREFIX : ''}${path}`, {
     ...options,
@@ -75,9 +95,9 @@ export async function request<T>(
     }
 
     throw new ApiError(
-      errorMessage(payload, 'Не удалось выполнить запрос. Попробуйте ещё раз.'),
+      safeMessage(response.status),
       response.status,
-      body.errors,
+      safeValidationErrors(body.errors),
       body.data?.errorCode,
     )
   }
@@ -90,13 +110,8 @@ export async function initializeCsrf(): Promise<void> {
 }
 
 export function firstError(error: unknown, field?: string): string | undefined {
-  if (!(error instanceof ApiError)) {
-    return undefined
-  }
-
-  if (field) {
-    return error.validationErrors[field]?.[0]
-  }
+  if (!(error instanceof ApiError)) return undefined
+  if (field) return error.validationErrors[field]?.[0]
 
   return Object.values(error.validationErrors)[0]?.[0] ?? error.message
 }
