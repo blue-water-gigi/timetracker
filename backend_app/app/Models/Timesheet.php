@@ -18,6 +18,8 @@ use Illuminate\Support\Carbon;
  * @property TimesheetStatus $status
  * @property Carbon $period_start
  * @property Carbon $period_end
+ * @property Carbon|null $submitted_at
+ * @property Carbon|null $reviewed_at
  */
 class Timesheet extends Model
 {

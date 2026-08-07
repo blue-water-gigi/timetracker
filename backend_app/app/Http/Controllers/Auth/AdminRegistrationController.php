@@ -26,8 +26,8 @@ class AdminRegistrationController extends Controller
             /**
              * @var User $user
              */
-            $user = DB::transaction(function () use ($request) {
-                $user = User::make();
+            $user = DB::transaction(function () use ($request): User {
+                $user = new User;
 
                 $user->system_role = SystemRole::ADMINISTRATOR;
                 $user->workspace_id = null;

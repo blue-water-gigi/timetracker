@@ -27,7 +27,7 @@ class UpdateProjectRequest extends FormRequest
      */
     public function rules(): array
     {
-        $project = $this->route('project');
+        $this->route('project');
 
         return [
             'workspace_id' => ['prohibited'],
@@ -54,13 +54,13 @@ class UpdateProjectRequest extends FormRequest
                 $hasPeriodStart = array_key_exists('period_start', $attributes);
                 $hasPeriodEnd = array_key_exists('period_end', $attributes);
 
-                if (!$hasPeriodStart && !$hasPeriodEnd) {
+                if (! $hasPeriodStart && ! $hasPeriodEnd) {
                     return;
                 }
 
                 $project = $this->route('project');
 
-                if (!$project instanceof Project) {
+                if (! $project instanceof Project) {
                     return;
                 }
 

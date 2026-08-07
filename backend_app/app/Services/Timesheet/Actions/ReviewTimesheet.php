@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Timesheet\Actions;
 
 use App\Enums\TimesheetStatus;
+use App\Events\TimesheetReviewed;
 use App\Events\WorkspaceReadModelChanged;
 use App\Exceptions\Transaction\TransactionErrorException;
 use App\Models\Timesheet;
@@ -55,6 +56,17 @@ final readonly class ReviewTimesheet
                 WorkspaceReadModelChanged::dispatch(
                     workspaceId: $locked->workspace_id,
                     reason: 'timesheet_reviewed'
+                );
+
+                TimesheetReviewed::dispatch(
+                    timesheetId: (int) $locked->getKey(),
+                    workspaceId: (int) $locked->workspace_id,
+                    projectId: (int) $locked->project_id,
+                    authorId: (int) $locked->user_id,
+                    reviewerId: (int) $locked->reviewed_by_user_id,
+                    decision: $decision->value,
+                    reviewedAt: (string) $locked->reviewed_at,
+                    reviewComment: $locked->review_comment
                 );
 
                 return $locked;

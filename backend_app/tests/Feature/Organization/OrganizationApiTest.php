@@ -22,7 +22,6 @@ it('lets an administrator manage only owned organizations', function () {
 
     $created = $this->postJson('/api/v1/organizations', [
         'name' => 'New organization',
-        'slug' => 'new-organization',
     ])->assertCreated();
 
     $organizationId = $created->json('data.id');

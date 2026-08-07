@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Timesheet\Actions;
 
 use App\Enums\TimesheetStatus;
+use App\Events\TimesheetSubmitted;
 use App\Events\WorkspaceReadModelChanged;
 use App\Exceptions\Transaction\TransactionErrorException;
 use App\Models\Timesheet;
@@ -47,6 +48,14 @@ final readonly class SubmitTimesheet
                 WorkspaceReadModelChanged::dispatch(
                     workspaceId: (int) $locked->workspace_id,
                     reason: 'timesheet_submitted'
+                );
+
+                TimesheetSubmitted::dispatch(
+                    timesheetId: (int) $locked->getKey(),
+                    workspaceId: (int) $locked->workspace_id,
+                    projectId: (int) $locked->project_id,
+                    authorId: (int) $locked->user_id,
+                    submittedAt: $locked->submitted_at->toDateTimeString(),
                 );
 
                 return $locked;

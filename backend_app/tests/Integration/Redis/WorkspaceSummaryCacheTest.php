@@ -74,7 +74,6 @@ it('invalidates summary counts after project membership and timesheet actions', 
         $afterProjectCreate = redisWorkspaceSummary($tenant->workspace, $employee);
 
         $membership = app(CreateProjectMember::class)->handle(
-            $tenant->workspace,
             $tenant->project,
             [
                 'user_id' => (int) $employee->getKey(),
@@ -102,7 +101,7 @@ it('invalidates summary counts after project membership and timesheet actions', 
         $timesheetService->approve($tenant->admin, $submitted, null);
         $afterReview = redisWorkspaceSummary($tenant->workspace, $employee);
 
-        app(DeleteProjectMember::class)->handle($tenant->workspace, $membership);
+        app(DeleteProjectMember::class)->handle($membership);
         $afterMembershipDelete = redisWorkspaceSummary($tenant->workspace, $employee);
 
         app(DeleteProject::class)->handle($createdProject);
