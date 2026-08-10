@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Queries\Statistics;
 
 use App\Contracts\Queries\Statistics\GetPersonalStatistics;
-use App\Enums\StatisticsGranularity;
 use App\Enums\TimesheetStatus;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Support\Statistics\InteractsWithBuckets;
+use App\Support\Statistics\InteractsWithHours;
 use App\Support\Statistics\StatisticsPeriod;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\DB;
 /** PostgreSQL only */
 readonly class EloquentGetPersonalStatistics implements GetPersonalStatistics
 {
+    use InteractsWithBuckets, InteractsWithHours;
+
     /**
      * @return array<string,mixed>
      */
@@ -199,26 +202,5 @@ readonly class EloquentGetPersonalStatistics implements GetPersonalStatistics
             ])
             ->values()
             ->all();
-    }
-
-    /**
-     * For pgsql only.
-     *
-     * Match date_trunc()::date case invariant to certain granularity
-     */
-    private function matchDateTruncBucket(StatisticsGranularity $granularity): string
-    {
-        // no default cuz $granularity comes from Request and validated to be in enum cases
-        return match ($granularity) {
-            StatisticsGranularity::DAY     => "date_trunc('day', e.work_date)::date",
-            StatisticsGranularity::WEEK    => "date_trunc('week', e.work_date)::date",
-            StatisticsGranularity::MONTH   => "date_trunc('month', e.work_date)::date",
-            StatisticsGranularity::QUARTER => "date_trunc('quarter', e.work_date)::date",
-        };
-    }
-
-    private function hours(int|float|null|string $value): float
-    {
-        return round((float) ($value ?? 0), 2);
     }
 }

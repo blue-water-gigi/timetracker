@@ -24,6 +24,19 @@ class WorkspacePolicy
             : Response::denyAsNotFound();
     }
 
+    public function viewWorkspaceStatistics(User $viewer, Workspace $workspace): Response
+    {
+        if ($viewer->isAdmin()) {
+            return $workspace->organization()->where('owner_id', $viewer->getKey())->exists()
+                ? Response::allow()
+                : Response::denyAsNotFound();
+        }
+
+        return $viewer->workspace_id === $workspace->getKey()
+            ? Response::deny('You do not have permission to do this action.')
+            : Response::denyAsNotFound();
+    }
+
     /**
      * Determine whether the user can view any models.
      */

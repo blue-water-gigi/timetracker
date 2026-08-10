@@ -9,6 +9,7 @@ use App\Http\Controllers\Organization\OrganizationController;
 use App\Http\Controllers\Project\ProjectController;
 use App\Http\Controllers\Project\ProjectMember\ProjectMemberController;
 use App\Http\Controllers\Statistics\PersonalStatisticsController;
+use App\Http\Controllers\Statistics\WorkspaceStatisticsController;
 use App\Http\Controllers\Timesheet\TimeEntryController;
 use App\Http\Controllers\Timesheet\TimesheetController;
 use App\Http\Controllers\User\UserController;
@@ -57,8 +58,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         ->only(['index', 'show', 'destroy'])
         ->scoped();
 
-    Route::get('/workspaces/{workspace}/statistics/me', PersonalStatisticsController::class)
-        ->withoutScopedBindings();
+    Route::get('/workspaces/{workspace}/statistics/me', PersonalStatisticsController::class);
+    Route::get('/workspaces/{workspace}/statistics', WorkspaceStatisticsController::class);
 });
 
 Route::middleware('guest.api')->group(function () {
