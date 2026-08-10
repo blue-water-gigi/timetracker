@@ -48,9 +48,9 @@ final readonly class ReviewTimesheet
 
                 $locked->forceFill([
                     'reviewed_by_user_id' => $reviewer->getKey(),
-                    'reviewed_at' => Carbon::now(),
-                    'review_comment' => $comment,
-                    'status' => $decision,
+                    'reviewed_at'         => Carbon::now(),
+                    'review_comment'      => $comment,
+                    'status'              => $decision,
                 ])->saveOrFail();
 
                 WorkspaceReadModelChanged::dispatch(

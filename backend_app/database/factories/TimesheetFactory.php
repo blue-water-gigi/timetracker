@@ -20,14 +20,14 @@ class TimesheetFactory extends Factory
     public function definition(): array
     {
         return [
-            'project_id' => Project::factory(),
+            'project_id'   => Project::factory(),
             'workspace_id' => fn (array $attributes): int => Project::query()
                 ->findOrFail($attributes['project_id'])
                 ->workspace_id,
-            'user_id' => fn (array $attributes): int => $this->userIdForProject($attributes),
+            'user_id'      => fn (array $attributes): int => $this->userIdForProject($attributes),
             'period_start' => today()->startOfWeek(),
-            'period_end' => today()->endOfWeek(),
-            'status' => TimesheetStatus::DRAFT,
+            'period_end'   => today()->endOfWeek(),
+            'status'       => TimesheetStatus::DRAFT,
         ];
     }
 
@@ -37,12 +37,12 @@ class TimesheetFactory extends Factory
             ProjectMember::query()->firstOrCreate(
                 [
                     'project_id' => $timesheet->project_id,
-                    'user_id' => $timesheet->user_id,
+                    'user_id'    => $timesheet->user_id,
                 ],
                 [
-                    'project_role' => ProjectRole::PARTICIPANT,
+                    'project_role'  => ProjectRole::PARTICIPANT,
                     'approval_rank' => ProjectRole::PARTICIPANT->approvalRank(),
-                    'active' => true,
+                    'active'        => true,
                 ],
             );
         });
@@ -51,31 +51,31 @@ class TimesheetFactory extends Factory
     public function submitted(): static
     {
         return $this->state(fn (): array => [
-            'status' => TimesheetStatus::SUBMITTED,
+            'status'              => TimesheetStatus::SUBMITTED,
             'reviewed_by_user_id' => null,
-            'review_comment' => null,
-            'reviewed_at' => null,
-            'submitted_at' => now(),
+            'review_comment'      => null,
+            'reviewed_at'         => null,
+            'submitted_at'        => now(),
         ]);
     }
 
     public function approved(User $reviewer, ?string $comment = 'Approved.'): static
     {
         return $this->submitted()->state(fn (): array => [
-            'status' => TimesheetStatus::APPROVED,
+            'status'              => TimesheetStatus::APPROVED,
             'reviewed_by_user_id' => $reviewer->getKey(),
-            'review_comment' => $comment,
-            'reviewed_at' => now(),
+            'review_comment'      => $comment,
+            'reviewed_at'         => now(),
         ]);
     }
 
     public function rejected(User $reviewer, string $comment = 'Changes requested.'): static
     {
         return $this->submitted()->state(fn (): array => [
-            'status' => TimesheetStatus::REJECTED,
+            'status'              => TimesheetStatus::REJECTED,
             'reviewed_by_user_id' => $reviewer->getKey(),
-            'review_comment' => $comment,
-            'reviewed_at' => now(),
+            'review_comment'      => $comment,
+            'reviewed_at'         => now(),
         ]);
     }
 

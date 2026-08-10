@@ -39,7 +39,7 @@ class TimesheetPolicy
 
         // check author and approver
         $approver = $this->activeMembership($project, (int) $user->getKey());
-        $author = $this->activeMembership($project, (int) $timesheet->user_id);
+        $author   = $this->activeMembership($project, (int) $timesheet->user_id);
 
         if (! $approver instanceof ProjectMember) {
             return Response::deny('An active project membership is required.');

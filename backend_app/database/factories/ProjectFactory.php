@@ -15,15 +15,15 @@ class ProjectFactory extends Factory
     public function definition(): array
     {
         return [
-            'workspace_id' => Workspace::factory(),
+            'workspace_id'       => Workspace::factory(),
             'created_by_user_id' => fn (array $attributes): int => $this->ownerIdForWorkspace($attributes),
             'updated_by_user_id' => fn (array $attributes): int => $this->ownerIdForWorkspace($attributes),
-            'name' => fake()->catchPhrase(),
-            'description' => fake()->optional()->sentence(),
-            'slug' => fake()->unique()->slug(),
-            'active' => true,
-            'period_start' => today()->startOfMonth(),
-            'period_end' => today()->endOfMonth(),
+            'name'               => fake()->catchPhrase(),
+            'description'        => fake()->optional()->sentence(),
+            'slug'               => fake()->unique()->slug(),
+            'active'             => true,
+            'period_start'       => today()->startOfMonth(),
+            'period_end'         => today()->endOfMonth(),
         ];
     }
 

@@ -26,16 +26,16 @@ class UpdateTimesheetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'workspace_id' => ['prohibited'],
-            'project_id' => ['prohibited'],
-            'user_id' => ['prohibited'],
-            'period_start' => ['bail', 'sometimes', 'date'],
-            'period_end' => ['bail', 'sometimes', 'date'],
-            'status' => ['prohibited'],
+            'workspace_id'        => ['prohibited'],
+            'project_id'          => ['prohibited'],
+            'user_id'             => ['prohibited'],
+            'period_start'        => ['bail', 'sometimes', 'date'],
+            'period_end'          => ['bail', 'sometimes', 'date'],
+            'status'              => ['prohibited'],
             'reviewed_by_user_id' => ['prohibited'],
-            'review_comment' => ['prohibited'],
-            'submitted_at' => ['prohibited'],
-            'reviewed_at' => ['prohibited'],
+            'review_comment'      => ['prohibited'],
+            'submitted_at'        => ['prohibited'],
+            'reviewed_at'         => ['prohibited'],
         ];
     }
 

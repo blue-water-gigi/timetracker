@@ -31,8 +31,8 @@ class TimeEntry extends Model
     protected function casts(): array
     {
         return [
-            'work_date' => 'date',
-            'hours' => 'decimal:2',
+            'work_date'   => 'date',
+            'hours'       => 'decimal:2',
             'is_overtime' => 'boolean',
         ];
     }

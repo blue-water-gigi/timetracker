@@ -30,7 +30,7 @@ readonly class CachedGetWorkspaceSummary implements GetWorkspaceSummary
     public function execute(Workspace $workspace, User $viewer): array
     {
         $workspaceId = (int) $workspace->getKey();
-        $viewerId = (int) $viewer->getKey();
+        $viewerId    = (int) $viewer->getKey();
 
         $key = CacheKeys::workspaceSummary($workspaceId, $viewerId);
 
@@ -74,7 +74,7 @@ readonly class CachedGetWorkspaceSummary implements GetWorkspaceSummary
     {
         $this->logger->warning('Workspace summary cache fallback.', [
             'workspaceId' => $workspaceId,
-            'exception' => $th::class,
+            'exception'   => $th::class,
         ]);
     }
 }

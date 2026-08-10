@@ -40,9 +40,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return response()->json([
                 'data' => [
-                    'message' => $e->getMessage(),
+                    'message'   => $e->getMessage(),
                     'errorCode' => $e->errorCode(),
-                    'context' => $e->context(),
+                    'context'   => $e->context(),
                 ],
             ], Response::HTTP_CONFLICT);
         });
@@ -54,8 +54,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return response()->json([
                 'data' => [
-                    'message' => $e->getMessage(),
-                    'errors' => $e->errors(),
+                    'message'   => $e->getMessage(),
+                    'errors'    => $e->errors(),
                     'errorCode' => $e->errorCode(),
                 ],
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -68,7 +68,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return response()->json([
                 'data' => [
-                    'message' => $e->getMessage(),
+                    'message'   => $e->getMessage(),
                     'errorCode' => $e->errorCode(),
                 ],
             ], Response::HTTP_CONFLICT);
@@ -81,7 +81,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return response()->json([
                 'data' => [
-                    'message' => $e->getMessage(),
+                    'message'   => $e->getMessage(),
                     'errorCode' => $e->errorCode(),
                 ],
             ], Response::HTTP_CONFLICT);
@@ -94,7 +94,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return response()->json([
                 'data' => [
-                    'message' => $e->getMessage(),
+                    'message'   => $e->getMessage(),
                     'errorCode' => 'too_many_requests',
                 ],
             ], Response::HTTP_TOO_MANY_REQUESTS, $e->getHeaders());

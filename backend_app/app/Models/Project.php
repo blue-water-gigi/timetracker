@@ -41,9 +41,9 @@ class Project extends Model
     protected function casts(): array
     {
         return [
-            'active' => 'boolean',
+            'active'       => 'boolean',
             'period_start' => 'date',
-            'period_end' => 'date',
+            'period_end'   => 'date',
         ];
     }
 

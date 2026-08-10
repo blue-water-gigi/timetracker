@@ -25,7 +25,7 @@ readonly class ChangeTimesheetPeriodData
     public static function fromValidated(array $attributes): self
     {
         $hasPeriodStart = array_key_exists('period_start', $attributes);
-        $hasPeriodEnd = array_key_exists('period_end', $attributes);
+        $hasPeriodEnd   = array_key_exists('period_end', $attributes);
 
         return new self(
             $hasPeriodStart ? CarbonImmutable::parse($attributes['period_start'])->startOfDay() : null,
@@ -46,7 +46,7 @@ readonly class ChangeTimesheetPeriodData
 
         return TimesheetPeriodData::make(
             $this->periodStart ?? $current->periodStart,
-            $this->periodEnd ?? $current->periodEnd,
+            $this->periodEnd   ?? $current->periodEnd,
             $this->errorField()
         );
     }

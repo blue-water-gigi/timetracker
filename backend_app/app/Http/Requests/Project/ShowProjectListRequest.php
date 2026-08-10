@@ -25,7 +25,7 @@ class ShowProjectListRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'page' => ['sometimes', 'integer', 'min:1'],
+            'page'    => ['sometimes', 'integer', 'min:1'],
             'perPage' => ['sometimes', 'integer', 'min:1', 'max:15'],
         ];
     }

@@ -28,16 +28,16 @@ class StoreTimesheetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'workspace_id' => ['prohibited'],
-            'project_id' => ['prohibited'],
-            'user_id' => ['prohibited'],
-            'period_start' => ['bail', 'required', 'date'],
-            'period_end' => ['bail', 'required', 'date', 'after_or_equal:period_start'],
-            'status' => ['prohibited', Rule::enum(TimesheetStatus::class)],
+            'workspace_id'        => ['prohibited'],
+            'project_id'          => ['prohibited'],
+            'user_id'             => ['prohibited'],
+            'period_start'        => ['bail', 'required', 'date'],
+            'period_end'          => ['bail', 'required', 'date', 'after_or_equal:period_start'],
+            'status'              => ['prohibited', Rule::enum(TimesheetStatus::class)],
             'reviewed_by_user_id' => ['prohibited'],
-            'review_comment' => ['prohibited'],
-            'submitted_at' => ['prohibited'],
-            'reviewed_at' => ['prohibited'],
+            'review_comment'      => ['prohibited'],
+            'submitted_at'        => ['prohibited'],
+            'reviewed_at'         => ['prohibited'],
         ];
     }
 

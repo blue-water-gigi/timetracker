@@ -47,9 +47,9 @@ class ProjectMember extends Pivot
     protected function casts(): array
     {
         return [
-            'project_role' => ProjectRole::class,
+            'project_role'  => ProjectRole::class,
             'approval_rank' => ApprovalRank::class,
-            'active' => 'boolean',
+            'active'        => 'boolean',
         ];
     }
 

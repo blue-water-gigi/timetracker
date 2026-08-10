@@ -16,10 +16,10 @@ class WorkspaceFactory extends Factory
     {
         return [
             'organization_id' => Organization::factory(),
-            'name' => fake()->companySuffix(),
-            'slug' => fake()->unique()->slug(),
-            'join_code_hash' => Workspace::hashJoinCode(Workspace::generateJoinCode()),
-            'active' => true,
+            'name'            => fake()->companySuffix(),
+            'slug'            => fake()->unique()->slug(),
+            'join_code_hash'  => Workspace::hashJoinCode(Workspace::generateJoinCode()),
+            'active'          => true,
         ];
     }
 

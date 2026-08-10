@@ -34,8 +34,8 @@ class TimesheetSubmittedNotification extends Notification
         return [
             'timesheetId' => $this->timesheet->id,
             'workspaceId' => $this->timesheet->workspace_id,
-            'projectId' => $this->timesheet->project_id,
-            'authorId' => $this->timesheet->user_id,
+            'projectId'   => $this->timesheet->project_id,
+            'authorId'    => $this->timesheet->user_id,
             'submittedAt' => $this->timesheet->submitted_at?->toDateTimeString(),
         ];
     }
@@ -50,8 +50,8 @@ class TimesheetSubmittedNotification extends Notification
         return [
             'timesheetId' => $this->timesheet->id,
             'workspaceId' => $this->timesheet->workspace_id,
-            'projectId' => $this->timesheet->project_id,
-            'authorId' => $this->timesheet->user_id,
+            'projectId'   => $this->timesheet->project_id,
+            'authorId'    => $this->timesheet->user_id,
             'submittedAt' => $this->timesheet->submitted_at?->toDateTimeString(),
         ];
     }

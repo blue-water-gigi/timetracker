@@ -6,10 +6,10 @@ namespace App\Enums;
 
 enum TimesheetStatus: string
 {
-    case DRAFT = 'draft';
+    case DRAFT     = 'draft';
     case SUBMITTED = 'submitted';
-    case APPROVED = 'approved';
-    case REJECTED = 'rejected';
+    case APPROVED  = 'approved';
+    case REJECTED  = 'rejected';
 
     public static function editable(): array
     {
@@ -40,8 +40,8 @@ enum TimesheetStatus: string
     {
         return match ($this) {
             self::DRAFT, self::REJECTED => $to === self::SUBMITTED,
-            self::SUBMITTED => in_array($to, self::reviewDecisions(), true),
-            self::APPROVED => false,
+            self::SUBMITTED             => in_array($to, self::reviewDecisions(), true),
+            self::APPROVED              => false,
         };
     }
 }

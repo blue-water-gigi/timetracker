@@ -24,7 +24,7 @@ class LoginUserRequest extends AuthFormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email', 'string', 'max:255'],
+            'email'    => ['required', 'email', 'string', 'max:255'],
             'password' => ['required', 'string'],
         ];
     }

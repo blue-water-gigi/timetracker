@@ -17,18 +17,18 @@ class OrganizationResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'owner' => new UserResource($this->whenLoaded('owner')),
-            'name' => $this->name,
-            'slug' => $this->slug,
+            'id'         => $this->id,
+            'owner'      => new UserResource($this->whenLoaded('owner')),
+            'name'       => $this->name,
+            'slug'       => $this->slug,
             'workspaces' => new WorkspaceCollection($this->whenLoaded('workspaces')),
-            'deletedAt' => $this->whenNotNull($this->deleted_at?->toISOString()),
+            'deletedAt'  => $this->whenNotNull($this->deleted_at?->toISOString()),
             'timestamps' => [
                 'createdAt' => $this->created_at?->toISOString(),
                 'updatedAt' => $this->updated_at?->toISOString(),
             ],
             'workspacesCount' => $this->whenCounted('workspaces'),
-            'usersCount' => $this->whenCounted('users'),
+            'usersCount'      => $this->whenCounted('users'),
         ];
     }
 }

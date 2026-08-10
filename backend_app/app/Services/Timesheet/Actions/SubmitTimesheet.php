@@ -39,10 +39,10 @@ final readonly class SubmitTimesheet
 
                 $locked->forceFill([
                     'reviewed_by_user_id' => null,
-                    'reviewed_at' => null,
-                    'review_comment' => null,
-                    'status' => TimesheetStatus::SUBMITTED,
-                    'submitted_at' => Carbon::now(),
+                    'reviewed_at'         => null,
+                    'review_comment'      => null,
+                    'status'              => TimesheetStatus::SUBMITTED,
+                    'submitted_at'        => Carbon::now(),
                 ])->saveOrFail();
 
                 WorkspaceReadModelChanged::dispatch(

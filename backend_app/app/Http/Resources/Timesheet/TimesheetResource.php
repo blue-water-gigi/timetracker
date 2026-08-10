@@ -25,22 +25,22 @@ class TimesheetResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'workspace' => new WorkspaceResource($this->whenLoaded('workspace')),
-            'project' => new ProjectResource($this->whenLoaded('project')),
-            'createdBy' => new UserResource($this->whenLoaded('user')),
-            'periodStart' => $this->period_start->toIsoString(),
-            'periodEnd' => $this->period_end->toIsoString(),
-            'status' => $this->status,
-            'entries' => TimeEntryResource::collection($this->whenLoaded('entries')),
-            'reviewedBy' => new UserResource($this->whenLoaded('reviewedBy')),
+            'id'            => $this->id,
+            'workspace'     => new WorkspaceResource($this->whenLoaded('workspace')),
+            'project'       => new ProjectResource($this->whenLoaded('project')),
+            'createdBy'     => new UserResource($this->whenLoaded('user')),
+            'periodStart'   => $this->period_start->toIsoString(),
+            'periodEnd'     => $this->period_end->toIsoString(),
+            'status'        => $this->status,
+            'entries'       => TimeEntryResource::collection($this->whenLoaded('entries')),
+            'reviewedBy'    => new UserResource($this->whenLoaded('reviewedBy')),
             'reviewComment' => $this->whenNotNull($this->review_comment),
-            'entriesCount' => $this->whenCounted('entries'),
-            'timestamps' => [
+            'entriesCount'  => $this->whenCounted('entries'),
+            'timestamps'    => [
                 'submittedAt' => $this->whenNotNull($this->submitted_at),
-                'reviewedAt' => $this->whenNotNull($this->reviewed_at),
-                'createdAt' => $this->created_at?->toIsoString(),
-                'updatedAt' => $this->updated_at?->toIsoString(),
+                'reviewedAt'  => $this->whenNotNull($this->reviewed_at),
+                'createdAt'   => $this->created_at?->toIsoString(),
+                'updatedAt'   => $this->updated_at?->toIsoString(),
             ],
         ];
     }

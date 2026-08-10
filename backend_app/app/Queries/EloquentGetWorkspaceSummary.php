@@ -17,9 +17,9 @@ class EloquentGetWorkspaceSummary implements GetWorkspaceSummary
     public function execute(Workspace $workspace, User $viewer): array
     {
         return [
-            'workspace_id' => $workspace->getKey(),
-            'projects_count' => $workspace->projects()->count(),
-            'members_count' => $workspace->memberships()->count(),
+            'workspace_id'           => $workspace->getKey(),
+            'projects_count'         => $workspace->projects()->count(),
+            'members_count'          => $workspace->memberships()->count(),
             'valid_timesheets_count' => $workspace->timesheets()
                 ->whereBelongsTo($viewer, 'user')
                 ->whereIn('status', TimesheetStatus::validTimesheets())

@@ -20,14 +20,14 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'workspace_id' => Workspace::factory(),
-            'system_role' => SystemRole::EMPLOYEE,
-            'first_name' => fake()->firstName(),
-            'last_name' => fake()->lastName(),
-            'email' => fake()->unique()->safeEmail(),
+            'workspace_id'      => Workspace::factory(),
+            'system_role'       => SystemRole::EMPLOYEE,
+            'first_name'        => fake()->firstName(),
+            'last_name'         => fake()->lastName(),
+            'email'             => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'password'          => static::$password ??= Hash::make('password'),
+            'remember_token'    => Str::random(10),
         ];
     }
 
@@ -35,7 +35,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (): array => [
             'workspace_id' => null,
-            'system_role' => SystemRole::ADMINISTRATOR,
+            'system_role'  => SystemRole::ADMINISTRATOR,
         ]);
     }
 
@@ -43,7 +43,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (): array => [
             'workspace_id' => $workspace->id,
-            'system_role' => SystemRole::EMPLOYEE,
+            'system_role'  => SystemRole::EMPLOYEE,
         ]);
     }
 

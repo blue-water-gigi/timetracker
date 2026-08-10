@@ -26,13 +26,13 @@ class RegisterAdminRequest extends AuthFormRequest
     public function rules(): array
     {
         return [
-            'first_name' => ['nullable', 'sometimes', 'string', 'min:2', 'max:50', $this->nameRegexRule()],
-            'last_name' => ['nullable', 'sometimes', 'string', 'min:2', 'max:50', $this->nameRegexRule()],
-            'system_role' => ['prohibited'],
-            'join_code' => ['prohibited'],
+            'first_name'   => ['nullable', 'sometimes', 'string', 'min:2', 'max:50', $this->nameRegexRule()],
+            'last_name'    => ['nullable', 'sometimes', 'string', 'min:2', 'max:50', $this->nameRegexRule()],
+            'system_role'  => ['prohibited'],
+            'join_code'    => ['prohibited'],
             'workspace_id' => ['prohibited'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
-            'password' => ['required', Password::defaults()],
+            'email'        => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
+            'password'     => ['required', Password::defaults()],
         ];
     }
 

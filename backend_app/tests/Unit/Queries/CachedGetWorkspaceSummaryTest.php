@@ -18,7 +18,7 @@ afterEach(function (): void {
 
 it('returns a cached workspace summary without executing the database query', function (): void {
     [$workspace, $viewer] = workspaceSummaryModels();
-    $summary = workspaceSummaryPayload();
+    $summary              = workspaceSummaryPayload();
 
     $databaseQuery = Mockery::mock(GetWorkspaceSummary::class, function (MockInterface $mock): void {
         $mock->shouldNotReceive('execute');
@@ -43,7 +43,7 @@ it('returns a cached workspace summary without executing the database query', fu
 
 it('loads and stores a workspace summary on a cache miss', function (): void {
     [$workspace, $viewer] = workspaceSummaryModels();
-    $summary = workspaceSummaryPayload();
+    $summary              = workspaceSummaryPayload();
 
     $databaseQuery = Mockery::mock(GetWorkspaceSummary::class, function (MockInterface $mock) use ($workspace, $viewer, $summary): void {
         $mock->shouldReceive('execute')
@@ -71,7 +71,7 @@ it('loads and stores a workspace summary on a cache miss', function (): void {
 
 it('falls back to the database when reading from cache fails', function (): void {
     [$workspace, $viewer] = workspaceSummaryModels();
-    $summary = workspaceSummaryPayload();
+    $summary              = workspaceSummaryPayload();
 
     $databaseQuery = Mockery::mock(GetWorkspaceSummary::class, function (MockInterface $mock) use ($workspace, $viewer, $summary): void {
         $mock->shouldReceive('execute')
@@ -87,7 +87,7 @@ it('falls back to the database when reading from cache fails', function (): void
             ->once()
             ->with('Workspace summary cache fallback.', [
                 'workspaceId' => 17,
-                'exception' => RuntimeException::class,
+                'exception'   => RuntimeException::class,
             ]);
     });
 
@@ -103,7 +103,7 @@ it('falls back to the database when reading from cache fails', function (): void
 
 it('returns database data when storing the refreshed summary fails', function (): void {
     [$workspace, $viewer] = workspaceSummaryModels();
-    $summary = workspaceSummaryPayload();
+    $summary              = workspaceSummaryPayload();
 
     $databaseQuery = Mockery::mock(GetWorkspaceSummary::class, function (MockInterface $mock) use ($summary): void {
         $mock->shouldReceive('execute')->once()->andReturn($summary);
@@ -136,7 +136,7 @@ it('builds isolated keys for different workspaces and viewers', function (): voi
 function workspaceSummaryModels(): array
 {
     $workspace = (new Workspace)->forceFill(['id' => 17]);
-    $viewer = (new User)->forceFill(['id' => 501]);
+    $viewer    = (new User)->forceFill(['id' => 501]);
 
     return [$workspace, $viewer];
 }
@@ -145,9 +145,9 @@ function workspaceSummaryModels(): array
 function workspaceSummaryPayload(): array
 {
     return [
-        'workspace_id' => 17,
-        'projects_count' => 2,
-        'members_count' => 3,
+        'workspace_id'           => 17,
+        'projects_count'         => 2,
+        'members_count'          => 3,
         'valid_timesheets_count' => 4,
     ];
 }

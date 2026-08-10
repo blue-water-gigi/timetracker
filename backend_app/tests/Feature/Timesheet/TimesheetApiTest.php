@@ -16,7 +16,7 @@ it('allows only active project members to create their own timesheets', function
 
     $payload = [
         'period_start' => '2026-07-13',
-        'period_end' => '2026-07-19',
+        'period_end'   => '2026-07-19',
     ];
 
     $this->actingAs($member)
@@ -35,13 +35,13 @@ it('allows only active project members to create their own timesheets', function
 });
 
 it('enforces author ownership and approval-rank workflow', function () {
-    $tenant = TenantFixture::create();
-    $author = $tenant->employee();
+    $tenant   = TenantFixture::create();
+    $author   = $tenant->employee();
     $reviewer = $tenant->employee();
     $tenant->membership($author, ProjectRole::PARTICIPANT);
     $tenant->membership($reviewer, ProjectRole::SENIOR);
     $timesheet = $tenant->timesheet($author);
-    $url = $tenant->projectUrl('timesheets/'.$timesheet->id);
+    $url       = $tenant->projectUrl('timesheets/'.$timesheet->id);
 
     $this->actingAs($author)
         ->postJson($url.'/submit')
@@ -75,13 +75,13 @@ it('lets the owning administrator review without project membership', function (
 });
 
 it('resets review metadata when a rejected timesheet is resubmitted', function () {
-    $tenant = TenantFixture::create();
-    $author = $tenant->employee();
+    $tenant   = TenantFixture::create();
+    $author   = $tenant->employee();
     $reviewer = $tenant->employee();
     $tenant->membership($author, ProjectRole::PARTICIPANT);
     $tenant->membership($reviewer, ProjectRole::SENIOR);
     $timesheet = $tenant->timesheet($author, TimesheetStatus::SUBMITTED);
-    $url = $tenant->projectUrl('timesheets/'.$timesheet->id);
+    $url       = $tenant->projectUrl('timesheets/'.$timesheet->id);
 
     $this->actingAs($reviewer)
         ->postJson($url.'/reject', [
@@ -102,8 +102,8 @@ it('resets review metadata when a rejected timesheet is resubmitted', function (
         ->and($timesheet->review_comment)->toBeNull();
 });
 it('prevents peers or lower roles from reviewing a higher-rank author', function () {
-    $tenant = TenantFixture::create();
-    $author = $tenant->employee();
+    $tenant   = TenantFixture::create();
+    $author   = $tenant->employee();
     $reviewer = $tenant->employee();
     $tenant->membership($author, ProjectRole::SENIOR);
     $tenant->membership($reviewer, ProjectRole::PARTICIPANT);
@@ -122,7 +122,7 @@ it('does not shrink a period around existing entries', function () {
     $timesheet = $tenant->timesheet($author);
     $timesheet->entries()->create([
         'work_date' => $timesheet->period_start,
-        'hours' => 8,
+        'hours'     => 8,
     ]);
 
     $this->actingAs($author)
@@ -134,12 +134,12 @@ it('does not shrink a period around existing entries', function () {
 });
 
 it('shows approvers only submitted timesheets below their rank', function () {
-    $tenant = TenantFixture::create();
-    $author = $tenant->employee();
+    $tenant   = TenantFixture::create();
+    $author   = $tenant->employee();
     $reviewer = $tenant->employee();
     $tenant->membership($author, ProjectRole::PARTICIPANT);
     $tenant->membership($reviewer, ProjectRole::MANAGER);
-    $draft = $tenant->timesheet($author);
+    $draft     = $tenant->timesheet($author);
     $submitted = $tenant->timesheet($author, TimesheetStatus::SUBMITTED);
 
     $response = $this->actingAs($reviewer)
@@ -161,7 +161,7 @@ it('returns a domain conflict for an exact duplicate period', function () {
     $this->actingAs($author)
         ->postJson($tenant->projectUrl('timesheets'), [
             'period_start' => $timesheet->period_start->toDateString(),
-            'period_end' => $timesheet->period_end->toDateString(),
+            'period_end'   => $timesheet->period_end->toDateString(),
         ])->assertConflict()
         ->assertJsonPath('data.errorCode', 'duplicate_timesheet_period');
 
@@ -172,8 +172,8 @@ it('updates partial periods and reports inverted boundaries on the changed field
     $tenant = TenantFixture::create();
     $author = $tenant->employee();
     $tenant->membership($author);
-    $timesheet = $tenant->timesheet($author);
-    $url = $tenant->projectUrl('timesheets/'.$timesheet->id);
+    $timesheet   = $tenant->timesheet($author);
+    $url         = $tenant->projectUrl('timesheets/'.$timesheet->id);
     $extendedEnd = $timesheet->period_end->addDay();
 
     $this->actingAs($author)
@@ -197,13 +197,13 @@ it('updates partial periods and reports inverted boundaries on the changed field
 });
 
 it('requires and persists a rejection comment', function () {
-    $tenant = TenantFixture::create();
-    $author = $tenant->employee();
+    $tenant   = TenantFixture::create();
+    $author   = $tenant->employee();
     $reviewer = $tenant->employee();
     $tenant->membership($author, ProjectRole::PARTICIPANT);
     $tenant->membership($reviewer, ProjectRole::SENIOR);
     $timesheet = $tenant->timesheet($author, TimesheetStatus::SUBMITTED);
-    $url = $tenant->projectUrl('timesheets/'.$timesheet->id.'/reject');
+    $url       = $tenant->projectUrl('timesheets/'.$timesheet->id.'/reject');
 
     $this->actingAs($reviewer)
         ->postJson($url)

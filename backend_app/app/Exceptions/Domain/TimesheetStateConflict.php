@@ -29,7 +29,7 @@ abstract class TimesheetStateConflict extends DomainException implements Shouldn
     public function context(): array
     {
         return [
-            'currentStatus' => $this->currentStatus,
+            'currentStatus'   => $this->currentStatus,
             'allowedStatuses' => array_map(
                 fn (TimesheetStatus $status): string => $status->value,
                 $this->allowedStatuses

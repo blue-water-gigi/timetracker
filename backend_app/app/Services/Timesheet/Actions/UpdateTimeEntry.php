@@ -35,7 +35,7 @@ final readonly class UpdateTimeEntry
         try {
             return DB::transaction(function () use ($timesheet, $data, $entry): TimeEntry {
                 $lockedTimesheet = $this->lock->lockTimesheet($timesheet);
-                $lockedEntry = $this->lock->lockEntry($entry, $lockedTimesheet);
+                $lockedEntry     = $this->lock->lockEntry($entry, $lockedTimesheet);
 
                 $this->guard->ensureEditable($lockedTimesheet);
 

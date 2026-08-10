@@ -19,13 +19,13 @@ class RegisterEmployeeRequest extends AuthFormRequest
     public function rules(): array
     {
         return [
-            'first_name' => ['nullable', 'sometimes', 'string', 'min:2', 'max:50', $this->nameRegexRule()],
-            'last_name' => ['nullable', 'sometimes', 'string', 'min:2', 'max:50', $this->nameRegexRule()],
-            'join_code' => ['required', 'string', 'max:128'],
+            'first_name'   => ['nullable', 'sometimes', 'string', 'min:2', 'max:50', $this->nameRegexRule()],
+            'last_name'    => ['nullable', 'sometimes', 'string', 'min:2', 'max:50', $this->nameRegexRule()],
+            'join_code'    => ['required', 'string', 'max:128'],
             'workspace_id' => ['prohibited'],
-            'system_role' => ['prohibited'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
-            'password' => ['required', Password::defaults()],
+            'system_role'  => ['prohibited'],
+            'email'        => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
+            'password'     => ['required', Password::defaults()],
         ];
     }
 

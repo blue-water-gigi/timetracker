@@ -25,15 +25,15 @@ afterEach(function (): void {
 });
 
 it('finds only users who can currently review the timesheet', function (): void {
-    $tenant = TenantFixture::create();
-    $author = $tenant->employee();
-    $higherRank = $tenant->employee();
-    $equalRank = $tenant->employee();
-    $lowerRank = $tenant->employee();
-    $inactiveHigherRank = $tenant->employee();
+    $tenant                    = TenantFixture::create();
+    $author                    = $tenant->employee();
+    $higherRank                = $tenant->employee();
+    $equalRank                 = $tenant->employee();
+    $lowerRank                 = $tenant->employee();
+    $inactiveHigherRank        = $tenant->employee();
     $sameWorkspaceOtherProject = $tenant->employee();
-    $otherTenant = TenantFixture::create();
-    $otherTenantHigherRank = $otherTenant->employee();
+    $otherTenant               = TenantFixture::create();
+    $otherTenantHigherRank     = $otherTenant->employee();
 
     $tenant->membership($author, ProjectRole::SENIOR);
     $tenant->membership($higherRank, ProjectRole::MANAGER);
@@ -70,8 +70,8 @@ it('finds only users who can currently review the timesheet', function (): void 
 });
 
 it('returns only the owner administrator when the author has no active membership', function (): void {
-    $tenant = TenantFixture::create();
-    $author = $tenant->employee();
+    $tenant     = TenantFixture::create();
+    $author     = $tenant->employee();
     $higherRank = $tenant->employee();
 
     $tenant->membership($author, ProjectRole::PARTICIPANT, active: false);
@@ -95,10 +95,10 @@ it('returns no approvers for a missing project', function (): void {
 });
 
 it('notifies active higher-rank members and the owner administrator on current submit', function (): void {
-    $tenant = TenantFixture::create();
-    $author = $tenant->employee();
-    $higherRank = $tenant->employee();
-    $equalRank = $tenant->employee();
+    $tenant             = TenantFixture::create();
+    $author             = $tenant->employee();
+    $higherRank         = $tenant->employee();
+    $equalRank          = $tenant->employee();
     $inactiveHigherRank = $tenant->employee();
 
     $tenant->membership($author, ProjectRole::PARTICIPANT);
@@ -120,8 +120,8 @@ it('notifies active higher-rank members and the owner administrator on current s
     $expectedPayload = [
         'timesheetId' => $timesheet->getKey(),
         'workspaceId' => $tenant->workspace->getKey(),
-        'projectId' => $tenant->project->getKey(),
-        'authorId' => $author->getKey(),
+        'projectId'   => $tenant->project->getKey(),
+        'authorId'    => $author->getKey(),
         'submittedAt' => $event->submittedAt,
     ];
 
@@ -130,8 +130,8 @@ it('notifies active higher-rank members and the owner administrator on current s
             $recipient,
             TimesheetSubmittedNotification::class,
             fn (TimesheetSubmittedNotification $notification, array $channels): bool => $channels === ['database']
-                && $notification->databaseType($recipient) === 'timesheet.submitted'
-                && $notification->toDatabase($recipient) === $expectedPayload,
+                && $notification->databaseType($recipient)                                        === 'timesheet.submitted'
+                && $notification->toDatabase($recipient)                                          === $expectedPayload,
         );
         Notification::assertSentToTimes($recipient, TimesheetSubmittedNotification::class);
     }
@@ -142,8 +142,8 @@ it('notifies active higher-rank members and the owner administrator on current s
 });
 
 it('skips a submit notification when the timesheet has already changed', function (): void {
-    $tenant = TenantFixture::create();
-    $author = $tenant->employee();
+    $tenant   = TenantFixture::create();
+    $author   = $tenant->employee();
     $approver = $tenant->employee();
     $tenant->membership($author, ProjectRole::PARTICIPANT);
     $tenant->membership($approver, ProjectRole::SENIOR);
@@ -163,12 +163,12 @@ it('skips a submit notification when the timesheet has already changed', functio
 });
 
 it('notifies only the author using the review event snapshot', function (TimesheetStatus $decision): void {
-    $tenant = TenantFixture::create();
-    $author = $tenant->employee();
-    $otherUser = $tenant->employee();
+    $tenant     = TenantFixture::create();
+    $author     = $tenant->employee();
+    $otherUser  = $tenant->employee();
     $reviewedAt = '2026-08-07 14:15:16';
-    $comment = $decision === TimesheetStatus::REJECTED ? 'Please correct Friday.' : null;
-    $event = new TimesheetReviewed(
+    $comment    = $decision === TimesheetStatus::REJECTED ? 'Please correct Friday.' : null;
+    $event      = new TimesheetReviewed(
         timesheetId: 41,
         workspaceId: (int) $tenant->workspace->getKey(),
         projectId: (int) $tenant->project->getKey(),
@@ -186,14 +186,14 @@ it('notifies only the author using the review event snapshot', function (Timeshe
         $author,
         TimesheetReviewedNotification::class,
         fn (TimesheetReviewedNotification $notification, array $channels): bool => $channels === ['database']
-            && $notification->databaseType($author) === 'timesheet.reviewed'
-            && $notification->toDatabase($author) === [
-                'timesheetId' => 41,
-                'workspaceId' => $tenant->workspace->getKey(),
-                'projectId' => $tenant->project->getKey(),
-                'reviewerId' => $tenant->admin->getKey(),
-                'decision' => $decision->value,
-                'reviewedAt' => $reviewedAt,
+            && $notification->databaseType($author)                                          === 'timesheet.reviewed'
+            && $notification->toDatabase($author)                                            === [
+                'timesheetId'   => 41,
+                'workspaceId'   => $tenant->workspace->getKey(),
+                'projectId'     => $tenant->project->getKey(),
+                'reviewerId'    => $tenant->admin->getKey(),
+                'decision'      => $decision->value,
+                'reviewedAt'    => $reviewedAt,
                 'reviewComment' => $comment,
             ],
     );
@@ -205,10 +205,10 @@ it('notifies only the author using the review event snapshot', function (Timeshe
 
 it('defines retry and uniqueness metadata without overriding the test queue connection', function (): void {
     $submittedListener = timesheetApproverListener();
-    $reviewedListener = reviewAuthorListener();
-    $firstSubmit = new TimesheetSubmitted(7, 3, 5, 11, '2026-08-07 10:00:00');
-    $secondSubmit = new TimesheetSubmitted(7, 3, 5, 11, '2026-08-07 11:00:00');
-    $review = new TimesheetReviewed(7, 3, 5, 11, 13, 'approved', '2026-08-07 12:00:00', null);
+    $reviewedListener  = reviewAuthorListener();
+    $firstSubmit       = new TimesheetSubmitted(7, 3, 5, 11, '2026-08-07 10:00:00');
+    $secondSubmit      = new TimesheetSubmitted(7, 3, 5, 11, '2026-08-07 11:00:00');
+    $review            = new TimesheetReviewed(7, 3, 5, 11, 13, 'approved', '2026-08-07 12:00:00', null);
 
     expect($submittedListener)
         ->toBeInstanceOf(ShouldQueue::class)

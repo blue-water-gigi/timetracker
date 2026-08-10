@@ -29,7 +29,7 @@ final readonly class RemoveTimeEntry
         try {
             DB::transaction(function () use ($timesheet, $entry) {
                 $lockedTimesheet = $this->lock->lockTimesheet($timesheet);
-                $lockedEntry = $this->lock->lockEntry($entry, $lockedTimesheet);
+                $lockedEntry     = $this->lock->lockEntry($entry, $lockedTimesheet);
 
                 $this->guard->ensureEditable($lockedTimesheet);
 

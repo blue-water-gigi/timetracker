@@ -9,7 +9,7 @@ use App\Models\User;
 use Tests\Support\TenantFixture;
 
 it('lets an administrator manage only owned organizations', function () {
-    $tenant = TenantFixture::create();
+    $tenant  = TenantFixture::create();
     $foreign = TenantFixture::create();
 
     $this->actingAs($tenant->admin)
@@ -35,7 +35,7 @@ it('lets an administrator manage only owned organizations', function () {
 });
 
 it('soft deletes the tenant hierarchy while preserving time history', function () {
-    $tenant = TenantFixture::create();
+    $tenant   = TenantFixture::create();
     $employee = User::factory()->forWorkspace($tenant->workspace)->create();
     ProjectMember::factory()->for($tenant->project)->for($employee)->create();
     $timesheet = Timesheet::factory()->for($tenant->project)->for($employee)->create([
@@ -43,7 +43,7 @@ it('soft deletes the tenant hierarchy while preserving time history', function (
     ]);
     $entry = $timesheet->entries()->create([
         'work_date' => $timesheet->period_start,
-        'hours' => 8,
+        'hours'     => 8,
     ]);
 
     $this->actingAs($tenant->admin)

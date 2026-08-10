@@ -32,7 +32,7 @@ class TimesheetSeeder extends Seeder
                         $membership->user,
                         TimesheetPeriodData::fromValidated([
                             'period_start' => $periodStart->toDateString(),
-                            'period_end' => $periodStart->copy()->endOfWeek()->toDateString(),
+                            'period_end'   => $periodStart->copy()->endOfWeek()->toDateString(),
                         ]),
                     );
                 },

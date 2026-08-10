@@ -29,10 +29,10 @@ readonly class UpdateTimeEntryData implements Arrayable
      */
     public static function fromValidated(array $attributes): self
     {
-        $hasWorkDate = array_key_exists('work_date', $attributes);
+        $hasWorkDate    = array_key_exists('work_date', $attributes);
         $hasDescription = array_key_exists('description', $attributes);
-        $hasHours = array_key_exists('hours', $attributes);
-        $hasIsOvertime = array_key_exists('is_overtime', $attributes);
+        $hasHours       = array_key_exists('hours', $attributes);
+        $hasIsOvertime  = array_key_exists('is_overtime', $attributes);
 
         return new self(
             $hasWorkDate ? CarbonImmutable::parse($attributes['work_date'])->startOfDay() : null,

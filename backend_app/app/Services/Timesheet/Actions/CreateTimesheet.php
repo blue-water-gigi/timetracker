@@ -42,8 +42,8 @@ final readonly class CreateTimesheet
 
                 $timesheet->forceFill([
                     'workspace_id' => $project->workspace_id,
-                    'project_id' => $project->id,
-                    'user_id' => $author->id,
+                    'project_id'   => $project->id,
+                    'user_id'      => $author->id,
                     ...$data->toArray(),
                 ])->saveOrFail();
 

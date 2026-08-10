@@ -59,7 +59,7 @@ class NotifyTimesheetAuthor implements ShouldBeUnique, ShouldQueue
         $this->logger->error('Failed to send notification to timesheet author after all retries.', [
             'timesheet_id' => $event->timesheetId,
             'workspace_id' => $event->workspaceId,
-            'exception' => $th,
+            'exception'    => $th,
         ]);
     }
 

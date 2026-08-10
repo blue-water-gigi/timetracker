@@ -29,7 +29,7 @@ class AdminRegistrationController extends Controller
             $user = DB::transaction(function () use ($request): User {
                 $user = new User;
 
-                $user->system_role = SystemRole::ADMINISTRATOR;
+                $user->system_role  = SystemRole::ADMINISTRATOR;
                 $user->workspace_id = null;
 
                 $user->forceFill($request->validated())
@@ -45,7 +45,7 @@ class AdminRegistrationController extends Controller
         } catch (Throwable $th) {
             Log::error('Failed to create admin user', [
                 'message' => $th->getMessage(),
-                'line' => $th->getLine(),
+                'line'    => $th->getLine(),
             ]);
 
             throw $th;

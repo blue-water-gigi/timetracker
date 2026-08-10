@@ -10,9 +10,9 @@ use App\Models\Timesheet;
 use Illuminate\Database\QueryException;
 
 it('builds a tenant-consistent graph from every domain factory', function () {
-    $project = Project::factory()->create();
+    $project    = Project::factory()->create();
     $membership = ProjectMember::factory()->for($project)->create();
-    $timesheet = Timesheet::factory()
+    $timesheet  = Timesheet::factory()
         ->for($project)
         ->for($membership->user)
         ->create();
@@ -62,10 +62,10 @@ it('enforces PostgreSQL role and workspace checks at the database boundary', fun
 
     expect(fn () => DB::table('users')->insert([
         'workspace_id' => null,
-        'system_role' => 'employee',
-        'email' => 'invalid-employee@example.com',
-        'password' => 'password',
-        'created_at' => now(),
-        'updated_at' => now(),
+        'system_role'  => 'employee',
+        'email'        => 'invalid-employee@example.com',
+        'password'     => 'password',
+        'created_at'   => now(),
+        'updated_at'   => now(),
     ]))->toThrow(QueryException::class);
 });

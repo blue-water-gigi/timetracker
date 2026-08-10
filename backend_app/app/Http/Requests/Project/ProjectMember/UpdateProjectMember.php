@@ -27,11 +27,11 @@ class UpdateProjectMember extends FormRequest
     public function rules(): array
     {
         return [
-            'project_id' => ['prohibited'],
-            'user_id' => ['prohibited'],
-            'project_role' => ['sometimes', 'string', Rule::enum(ProjectRole::class)],
+            'project_id'    => ['prohibited'],
+            'user_id'       => ['prohibited'],
+            'project_role'  => ['sometimes', 'string', Rule::enum(ProjectRole::class)],
             'approval_rank' => ['prohibited'], // depends on the role, server maps it automatically
-            'active' => ['sometimes', 'boolean'],
+            'active'        => ['sometimes', 'boolean'],
         ];
     }
 }

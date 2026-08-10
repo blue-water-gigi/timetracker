@@ -35,8 +35,8 @@ it('logs an invalidation failure without rethrowing it', function (): void {
             ->once()
             ->with('Workspace cache invalidation failed.', [
                 'workspaceId' => 17,
-                'reason' => 'project_created',
-                'exception' => RuntimeException::class,
+                'reason'      => 'project_created',
+                'exception'   => RuntimeException::class,
             ]);
     });
 

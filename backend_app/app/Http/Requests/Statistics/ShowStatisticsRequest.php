@@ -30,8 +30,8 @@ class ShowStatisticsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'from' => ['bail', 'required_with:to', 'date_format:Y-m-d'],
-            'to' => ['bail', 'required_with:from', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'from'        => ['bail', 'required_with:to', 'date_format:Y-m-d'],
+            'to'          => ['bail', 'required_with:from', 'date_format:Y-m-d', 'after_or_equal:from'],
             'granularity' => ['sometimes', Rule::enum(StatisticsGranularity::class)],
         ];
     }
@@ -47,7 +47,7 @@ class ShowStatisticsRequest extends FormRequest
                 }
 
                 $from = CarbonImmutable::parse($this->input('from'))->startOfDay();
-                $to = CarbonImmutable::parse($this->input('to'))->startOfDay();
+                $to   = CarbonImmutable::parse($this->input('to'))->startOfDay();
                 $days = (int) $from->diffInDays($to) + 1;
 
                 if ($days > StatisticsPeriod::MAX_DAYS) {

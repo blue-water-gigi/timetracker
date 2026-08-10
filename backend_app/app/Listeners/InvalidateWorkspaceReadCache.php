@@ -23,8 +23,8 @@ readonly class InvalidateWorkspaceReadCache
         } catch (Throwable $th) {
             $this->logger->error('Workspace cache invalidation failed.', [
                 'workspaceId' => $event->workspaceId,
-                'reason' => $event->reason,
-                'exception' => $th::class,
+                'reason'      => $event->reason,
+                'exception'   => $th::class,
             ]);
         }
     }

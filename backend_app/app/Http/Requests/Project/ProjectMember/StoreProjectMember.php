@@ -37,7 +37,7 @@ class StoreProjectMember extends FormRequest
 
         return [
             'project_id' => ['prohibited'],
-            'user_id' => [
+            'user_id'    => [
                 'required',
                 'integer',
                 Rule::exists('users', 'id')
@@ -48,9 +48,9 @@ class StoreProjectMember extends FormRequest
                 Rule::unique('project_members', 'user_id')
                     ->where('project_id', $project->getKey()),
             ],
-            'project_role' => ['required', 'string', Rule::enum(ProjectRole::class)],
+            'project_role'  => ['required', 'string', Rule::enum(ProjectRole::class)],
             'approval_rank' => ['prohibited'], // depends on the role, server maps it automatically
-            'active' => ['sometimes', 'boolean'],
+            'active'        => ['sometimes', 'boolean'],
         ];
     }
 }

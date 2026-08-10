@@ -59,12 +59,12 @@ it('does not queue the submit listener when the surrounding transaction rolls ba
 });
 
 it('publishes one reviewed event with the committed decision snapshot', function (TimesheetStatus $decision): void {
-    $tenant = TenantFixture::create();
-    $author = $tenant->employee();
+    $tenant   = TenantFixture::create();
+    $author   = $tenant->employee();
     $reviewer = $tenant->employee();
     $tenant->membership($author, ProjectRole::PARTICIPANT);
     $tenant->membership($reviewer, ProjectRole::SENIOR);
-    $comment = $decision === TimesheetStatus::REJECTED ? 'Please correct Friday.' : null;
+    $comment   = $decision === TimesheetStatus::REJECTED ? 'Please correct Friday.' : null;
     $timesheet = Timesheet::factory()
         ->for($tenant->project)
         ->for($author, 'user')
@@ -78,13 +78,13 @@ it('publishes one reviewed event with the committed decision snapshot', function
     Event::assertDispatched(
         TimesheetReviewed::class,
         fn (TimesheetReviewed $event): bool => $event->timesheetId === $timesheet->getKey()
-            && $event->workspaceId === $tenant->workspace->getKey()
-            && $event->projectId === $tenant->project->getKey()
-            && $event->authorId === $author->getKey()
-            && $event->reviewerId === $reviewer->getKey()
-            && $event->decision === $decision->value
-            && $event->reviewComment === $comment
-            && $event->reviewedAt === $timesheet->refresh()->reviewed_at?->toDateTimeString(),
+            && $event->workspaceId                                 === $tenant->workspace->getKey()
+            && $event->projectId                                   === $tenant->project->getKey()
+            && $event->authorId                                    === $author->getKey()
+            && $event->reviewerId                                  === $reviewer->getKey()
+            && $event->decision                                    === $decision->value
+            && $event->reviewComment                               === $comment
+            && $event->reviewedAt                                  === $timesheet->refresh()->reviewed_at?->toDateTimeString(),
     );
 })->with([
     'approved' => TimesheetStatus::APPROVED,
@@ -96,8 +96,8 @@ it('places and processes the submitted listener through Redis', function (): voi
     $queue->clear('notifications');
 
     try {
-        $tenant = TenantFixture::create();
-        $author = $tenant->employee();
+        $tenant   = TenantFixture::create();
+        $author   = $tenant->employee();
         $approver = $tenant->employee();
         $tenant->membership($author, ProjectRole::PARTICIPANT);
         $tenant->membership($approver, ProjectRole::SENIOR);
@@ -138,8 +138,8 @@ it('places and processes the submitted listener through Redis', function (): voi
             ->and($notification?->data)->toMatchArray([
                 'timesheetId' => $timesheet->getKey(),
                 'workspaceId' => $tenant->workspace->getKey(),
-                'projectId' => $tenant->project->getKey(),
-                'authorId' => $author->getKey(),
+                'projectId'   => $tenant->project->getKey(),
+                'authorId'    => $author->getKey(),
             ]);
     } finally {
         $queue->clear('notifications');
@@ -154,11 +154,11 @@ function queuedApproverListener(CallQueuedListener $job): bool
 function redisStageThreeQueue(): RedisQueue
 {
     config()->set('queue.connections.stage3_testing', [
-        'driver' => 'redis',
-        'connection' => 'testing',
-        'queue' => 'notifications',
-        'retry_after' => 90,
-        'block_for' => null,
+        'driver'       => 'redis',
+        'connection'   => 'testing',
+        'queue'        => 'notifications',
+        'retry_after'  => 90,
+        'block_for'    => null,
         'after_commit' => true,
     ]);
 

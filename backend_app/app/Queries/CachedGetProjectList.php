@@ -27,7 +27,7 @@ readonly class CachedGetProjectList implements GetProjectList
     public function execute(Workspace $workspace, User $viewer, int $page = 1, int $perPage = 15): array
     {
         $workspaceId = (int) $workspace->getKey();
-        $viewerId = (int) $viewer->getKey();
+        $viewerId    = (int) $viewer->getKey();
 
         $key = CacheKeys::projectList($workspaceId, $viewerId, $page, $perPage);
 
@@ -65,7 +65,7 @@ readonly class CachedGetProjectList implements GetProjectList
     {
         $this->logger->warning('Project list cache fallback.', [
             'workspaceId' => $workspaceId,
-            'exception' => $th::class,
+            'exception'   => $th::class,
         ]);
     }
 }

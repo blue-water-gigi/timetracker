@@ -26,9 +26,9 @@ class TimeEntrySeeder extends Seeder
                     $this->timesheetService->addEntry(
                         $timesheet,
                         CreateTimeEntryData::fromValidated([
-                            'work_date' => $timesheet->period_start->addDays($dayOffset)->toDateString(),
+                            'work_date'   => $timesheet->period_start->addDays($dayOffset)->toDateString(),
                             'description' => fake()->sentence(),
-                            'hours' => number_format(fake()->randomFloat(2, 1, 12), 2, '.', ''),
+                            'hours'       => number_format(fake()->randomFloat(2, 1, 12), 2, '.', ''),
                             'is_overtime' => $dayOffset === 1,
                         ]),
                     );

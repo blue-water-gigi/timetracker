@@ -18,7 +18,7 @@ afterEach(function (): void {
 
 it('returns a tagged cached project list without executing the database query', function (): void {
     [$workspace, $viewer] = projectListModels();
-    $list = projectListPayload();
+    $list                 = projectListPayload();
 
     $databaseQuery = Mockery::mock(GetProjectList::class, function (MockInterface $mock): void {
         $mock->shouldNotReceive('execute');
@@ -42,7 +42,7 @@ it('returns a tagged cached project list without executing the database query', 
 
 it('loads and stores a project list on a tagged cache miss', function (): void {
     [$workspace, $viewer] = projectListModels();
-    $list = projectListPayload();
+    $list                 = projectListPayload();
 
     $databaseQuery = Mockery::mock(GetProjectList::class, function (MockInterface $mock) use ($workspace, $viewer, $list): void {
         $mock->shouldReceive('execute')
@@ -69,7 +69,7 @@ it('loads and stores a project list on a tagged cache miss', function (): void {
 
 it('falls back to the database when creating the tagged cache fails', function (): void {
     [$workspace, $viewer] = projectListModels();
-    $list = projectListPayload();
+    $list                 = projectListPayload();
 
     $databaseQuery = Mockery::mock(GetProjectList::class, function (MockInterface $mock) use ($workspace, $viewer, $list): void {
         $mock->shouldReceive('execute')
@@ -98,7 +98,7 @@ it('falls back to the database when creating the tagged cache fails', function (
 
 it('returns database data when storing the refreshed project list fails', function (): void {
     [$workspace, $viewer] = projectListModels();
-    $list = projectListPayload();
+    $list                 = projectListPayload();
 
     $databaseQuery = Mockery::mock(GetProjectList::class, function (MockInterface $mock) use ($workspace, $viewer, $list): void {
         $mock->shouldReceive('execute')
@@ -131,7 +131,7 @@ it('returns database data when storing the refreshed project list fails', functi
 
 it('falls back to the database when reading from project list cache fails', function (): void {
     [$workspace, $viewer] = projectListModels();
-    $list = projectListPayload();
+    $list                 = projectListPayload();
 
     $databaseQuery = Mockery::mock(GetProjectList::class, function (MockInterface $mock) use ($workspace, $viewer, $list): void {
         $mock->shouldReceive('execute')
@@ -147,7 +147,7 @@ it('falls back to the database when reading from project list cache fails', func
             ->once()
             ->with('Project list cache fallback.', [
                 'workspaceId' => 17,
-                'exception' => RuntimeException::class,
+                'exception'   => RuntimeException::class,
             ]);
     });
 
@@ -185,9 +185,9 @@ function projectListPayload(): array
         'data' => [['id' => 91, 'name' => 'Cached project']],
         'meta' => [
             'current_page' => 2,
-            'per_page' => 10,
-            'total' => 11,
-            'last_page' => 2,
+            'per_page'     => 10,
+            'total'        => 11,
+            'last_page'    => 2,
         ],
     ];
 }

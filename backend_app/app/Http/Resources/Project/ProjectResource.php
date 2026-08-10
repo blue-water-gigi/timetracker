@@ -22,22 +22,22 @@ class ProjectResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'workspace' => new WorkspaceResource($this->whenLoaded('workspace')),
-            'createdBy' => new UserResource($this->whenLoaded('createdBy')),
-            'updatedBy' => new UserResource($this->whenNotNull($this->whenLoaded('updatedBy'))),
-            'name' => $this->name,
+            'id'          => $this->id,
+            'workspace'   => new WorkspaceResource($this->whenLoaded('workspace')),
+            'createdBy'   => new UserResource($this->whenLoaded('createdBy')),
+            'updatedBy'   => new UserResource($this->whenNotNull($this->whenLoaded('updatedBy'))),
+            'name'        => $this->name,
             'description' => $this->whenNotNull($this->description),
-            'slug' => $this->slug,
-            'active' => $this->active,
+            'slug'        => $this->slug,
+            'active'      => $this->active,
             'periodStart' => $this->whenNotNull($this->period_start),
-            'periodEnd' => $this->whenNotNull($this->period_end),
-            'timestamps' => [
+            'periodEnd'   => $this->whenNotNull($this->period_end),
+            'timestamps'  => [
                 'createdAt' => $this->created_at?->toIsoString(),
                 'updatedAt' => $this->updated_at?->toIsoString(),
             ],
 
-            'memberships' => new ProjectMemberCollection($this->whenLoaded('memberships')),
+            'memberships'      => new ProjectMemberCollection($this->whenLoaded('memberships')),
             'membershipsCount' => $this->whenCounted('memberships'),
         ];
     }

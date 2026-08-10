@@ -20,10 +20,10 @@ class StoreWorkspaceRequest extends FormRequest
         $this->route('organization');
 
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'slug' => ['prohibited'],
-            'description' => ['nullable', 'string', 'max:1024'],
-            'active' => ['sometimes', 'boolean'],
+            'name'            => ['required', 'string', 'max:255'],
+            'slug'            => ['prohibited'],
+            'description'     => ['nullable', 'string', 'max:1024'],
+            'active'          => ['sometimes', 'boolean'],
             'organization_id' => ['prohibited'],
         ];
     }

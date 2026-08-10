@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Organization\OrganizationController;
 use App\Http\Controllers\Project\ProjectController;
 use App\Http\Controllers\Project\ProjectMember\ProjectMemberController;
+use App\Http\Controllers\Statistics\PersonalStatisticsController;
 use App\Http\Controllers\Timesheet\TimeEntryController;
 use App\Http\Controllers\Timesheet\TimesheetController;
 use App\Http\Controllers\User\UserController;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('health', fn () => response()->json([
     'status' => 'ok',
-    'app' => config('app.version'),
+    'app'    => config('app.version'),
 ]));
 
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
@@ -55,6 +56,9 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::apiResource('/workspaces/{workspace}/users', UserController::class)
         ->only(['index', 'show', 'destroy'])
         ->scoped();
+
+    Route::get('/workspaces/{workspace}/statistics/me', PersonalStatisticsController::class)
+        ->withoutScopedBindings();
 });
 
 Route::middleware('guest.api')->group(function () {

@@ -11,8 +11,8 @@ it('maps every project role to its immutable approval rank', function (
 ) {
     expect($role->approvalRank())->toBe($rank);
 })->with([
-    'participant' => [ProjectRole::PARTICIPANT, ApprovalRank::PARTICIPANT],
-    'senior' => [ProjectRole::SENIOR, ApprovalRank::SENIOR],
-    'manager' => [ProjectRole::MANAGER, ApprovalRank::MANAGER],
+    'participant'  => [ProjectRole::PARTICIPANT, ApprovalRank::PARTICIPANT],
+    'senior'       => [ProjectRole::SENIOR, ApprovalRank::SENIOR],
+    'manager'      => [ProjectRole::MANAGER, ApprovalRank::MANAGER],
     'project lead' => [ProjectRole::PROJECT_LEAD, ApprovalRank::PROJECT_LEAD],
 ]);

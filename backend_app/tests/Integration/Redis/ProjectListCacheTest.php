@@ -72,7 +72,7 @@ it('invalidates a cached list throughout the project lifecycle', function (): vo
 })->group('redis');
 
 it('invalidates membership counts after adding and deleting a member', function (): void {
-    $tenant = TenantFixture::create();
+    $tenant   = TenantFixture::create();
     $employee = $tenant->employee();
     flushRedisProjectList($tenant->workspace, $tenant->admin);
 
@@ -82,9 +82,9 @@ it('invalidates membership counts after adding and deleting a member', function 
         $membership = app(CreateProjectMember::class)->handle(
             $tenant->project,
             [
-                'user_id' => (int) $employee->getKey(),
+                'user_id'      => (int) $employee->getKey(),
                 'project_role' => ProjectRole::PARTICIPANT->value,
-                'active' => true,
+                'active'       => true,
             ],
         );
         $afterCreate = redisProjectList($tenant->workspace, $tenant->admin);
@@ -101,8 +101,8 @@ it('invalidates membership counts after adding and deleting a member', function 
 })->group('redis');
 
 it('invalidates employee visibility after membership is deactivated', function (): void {
-    $tenant = TenantFixture::create();
-    $employee = $tenant->employee();
+    $tenant     = TenantFixture::create();
+    $employee   = $tenant->employee();
     $membership = $tenant->membership($employee, role: ProjectRole::PARTICIPANT);
     flushRedisProjectList($tenant->workspace, $employee);
 
@@ -160,7 +160,7 @@ it('does not invalidate another workspace project list', function (): void {
             (int) $tenantA->admin->getKey(),
         );
 
-        $refreshedA = redisProjectList($tenantA->workspace, $tenantA->admin);
+        $refreshedA   = redisProjectList($tenantA->workspace, $tenantA->admin);
         $stillCachedB = redisProjectList($tenantB->workspace, $tenantB->admin);
 
         expect($refreshedA['meta']['total'])->toBe(2)
@@ -194,7 +194,7 @@ function redisProjectList(Workspace $workspace, User $viewer, int $page = 1, int
 
 function flushRedisProjectList(Workspace $workspace, User $viewer): void
 {
-    $cache = Cache::store('redis');
+    $cache       = Cache::store('redis');
     $workspaceId = (int) $workspace->getKey();
 
     $cache->tags([CacheKeys::projectTag($workspaceId)])->flush();

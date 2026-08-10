@@ -25,15 +25,15 @@ class StoreProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'workspace_id' => ['prohibited'],
+            'workspace_id'       => ['prohibited'],
             'created_by_user_id' => ['prohibited'],
             'updated_by_user_id' => ['prohibited'],
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:500'],
-            'slug' => ['prohibited'],
-            'active' => ['sometimes', 'boolean'],
-            'period_start' => ['nullable', 'required_with:period_end', 'date'],
-            'period_end' => ['nullable', 'required_with:period_start', 'date', 'after_or_equal:period_start'],
+            'name'               => ['required', 'string', 'max:255'],
+            'description'        => ['nullable', 'string', 'max:500'],
+            'slug'               => ['prohibited'],
+            'active'             => ['sometimes', 'boolean'],
+            'period_start'       => ['nullable', 'required_with:period_end', 'date'],
+            'period_end'         => ['nullable', 'required_with:period_start', 'date', 'after_or_equal:period_start'],
         ];
     }
 }

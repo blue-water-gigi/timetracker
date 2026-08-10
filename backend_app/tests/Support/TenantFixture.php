@@ -26,10 +26,10 @@ final readonly class TenantFixture
 
     public static function create(): self
     {
-        $admin = User::factory()->administrator()->create();
+        $admin        = User::factory()->administrator()->create();
         $organization = Organization::factory()->for($admin, 'owner')->create();
-        $workspace = Workspace::factory()->for($organization)->create();
-        $project = Project::factory()->for($workspace)->create();
+        $workspace    = Workspace::factory()->for($organization)->create();
+        $project      = Project::factory()->for($workspace)->create();
 
         return new self($admin, $organization, $workspace, $project);
     }
@@ -71,21 +71,21 @@ final readonly class TenantFixture
             ->whereBelongsTo($user)
             ->count();
         $periodStart = today()->startOfWeek()->addWeeks($weekOffset);
-        $service = app(TimesheetService::class);
-        $timesheet = $service->create(
+        $service     = app(TimesheetService::class);
+        $timesheet   = $service->create(
             $project,
             $user,
             TimesheetPeriodData::fromValidated([
                 'period_start' => $periodStart->toDateString(),
-                'period_end' => $periodStart->copy()->endOfWeek()->toDateString(),
+                'period_end'   => $periodStart->copy()->endOfWeek()->toDateString(),
             ]),
         );
 
         return match ($status) {
-            TimesheetStatus::DRAFT => $timesheet,
+            TimesheetStatus::DRAFT     => $timesheet,
             TimesheetStatus::SUBMITTED => $service->submit($timesheet),
-            TimesheetStatus::APPROVED => $service->approve($this->admin, $service->submit($timesheet), 'Fixture approval.'),
-            TimesheetStatus::REJECTED => $service->reject($this->admin, $service->submit($timesheet), 'Fixture rejection.'),
+            TimesheetStatus::APPROVED  => $service->approve($this->admin, $service->submit($timesheet), 'Fixture approval.'),
+            TimesheetStatus::REJECTED  => $service->reject($this->admin, $service->submit($timesheet), 'Fixture rejection.'),
         };
     }
 

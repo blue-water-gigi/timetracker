@@ -16,10 +16,10 @@ class TimeEntryFactory extends Factory
     {
         return [
             'timesheet_id' => Timesheet::factory(),
-            'work_date' => fn (array $attributes) => Timesheet::query()
+            'work_date'    => fn (array $attributes) => Timesheet::query()
                 ->findOrFail($attributes['timesheet_id'])->period_start,
             'description' => fake()->optional()->sentence(),
-            'hours' => number_format(fake()->randomFloat(2, 1, 12), 2, '.', ''),
+            'hours'       => number_format(fake()->randomFloat(2, 1, 12), 2, '.', ''),
             'is_overtime' => false,
         ];
     }

@@ -41,10 +41,10 @@ class Timesheet extends Model
     {
         return [
             'period_start' => 'date',
-            'period_end' => 'date',
-            'status' => TimesheetStatus::class,
+            'period_end'   => 'date',
+            'status'       => TimesheetStatus::class,
             'submitted_at' => 'datetime',
-            'reviewed_at' => 'datetime',
+            'reviewed_at'  => 'datetime',
         ];
     }
 

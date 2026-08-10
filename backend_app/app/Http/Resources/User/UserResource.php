@@ -20,18 +20,18 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'firstName' => $this->whenNotNull($this->first_name),
-            'lastName' => $this->whenNotNull($this->last_name),
-            'systemRole' => $this->system_role,
-            'email' => $this->email,
-            'workspace' => new WorkspaceResource($this->whenLoaded('workspace')),
+            'id'                 => $this->id,
+            'firstName'          => $this->whenNotNull($this->first_name),
+            'lastName'           => $this->whenNotNull($this->last_name),
+            'systemRole'         => $this->system_role,
+            'email'              => $this->email,
+            'workspace'          => new WorkspaceResource($this->whenLoaded('workspace')),
             'ownedOrganizations' => new OrganizationCollection($this->whenLoaded('ownedOrganizations')),
-            'projects' => new ProjectCollection($this->whenLoaded('projects')),
-            'projectsCount' => $this->whenCounted('projects'),
+            'projects'           => new ProjectCollection($this->whenLoaded('projects')),
+            'projectsCount'      => $this->whenCounted('projects'),
             'projectMemberships' => new ProjectMemberCollection($this->whenLoaded('projectMemberships')),
-            'timesheets' => new TimesheetCollection($this->whenLoaded('timesheets')),
-            'timestamps' => [
+            'timesheets'         => new TimesheetCollection($this->whenLoaded('timesheets')),
+            'timestamps'         => [
                 'createdAt' => $this->created_at?->toIsoString(),
                 'updatedAt' => $this->updated_at?->toIsoString(),
             ],

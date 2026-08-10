@@ -22,13 +22,13 @@ class TimeEntryResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'timesheet' => new TimesheetResource($this->whenLoaded('timesheet')),
-            'workDate' => $this->work_date,
+            'id'          => $this->id,
+            'timesheet'   => new TimesheetResource($this->whenLoaded('timesheet')),
+            'workDate'    => $this->work_date,
             'description' => $this->whenNotNull($this->description),
-            'hours' => $this->hours,
-            'isOvertime' => $this->is_overtime,
-            'timestamps' => [
+            'hours'       => $this->hours,
+            'isOvertime'  => $this->is_overtime,
+            'timestamps'  => [
                 'createdAt' => $this->created_at->toIsoString(),
                 'updatedAt' => $this->updated_at->toIsoString(),
             ],

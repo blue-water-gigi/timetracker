@@ -51,10 +51,10 @@ it('seeds a complete and tenant-consistent development graph', function () {
         ->get()
         ->filter(
             fn (Timesheet $timesheet): bool => match ($timesheet->status) {
-                TimesheetStatus::DRAFT => $timesheet->submitted_at !== null || $timesheet->reviewed_at !== null || $timesheet->reviewed_by_user_id !== null,
-                TimesheetStatus::SUBMITTED => $timesheet->submitted_at === null || $timesheet->reviewed_at !== null || $timesheet->reviewed_by_user_id !== null,
-                TimesheetStatus::APPROVED => $timesheet->submitted_at === null || $timesheet->reviewed_at === null || $timesheet->reviewed_by_user_id === null,
-                TimesheetStatus::REJECTED => $timesheet->submitted_at === null || $timesheet->reviewed_at === null || $timesheet->reviewed_by_user_id === null || trim((string) $timesheet->review_comment) === '',
+                TimesheetStatus::DRAFT     => $timesheet->submitted_at                                                                                                             !== null || $timesheet->reviewed_at !== null || $timesheet->reviewed_by_user_id !== null,
+                TimesheetStatus::SUBMITTED => $timesheet->submitted_at === null                                                                                                             || $timesheet->reviewed_at !== null || $timesheet->reviewed_by_user_id !== null,
+                TimesheetStatus::APPROVED  => $timesheet->submitted_at === null                                                                                                             || $timesheet->reviewed_at === null || $timesheet->reviewed_by_user_id === null,
+                TimesheetStatus::REJECTED  => $timesheet->submitted_at === null                                                                                                             || $timesheet->reviewed_at === null || $timesheet->reviewed_by_user_id === null || trim((string) $timesheet->review_comment) === '',
             },
         )
         ->count();
@@ -78,7 +78,7 @@ it('builds coherent factory states for timesheets and time entries', function ()
 
     $period = fn (int $offset): array => [
         'period_start' => $periodStart->copy()->addWeeks($offset),
-        'period_end' => $periodStart->copy()->addWeeks($offset)->endOfWeek(),
+        'period_end'   => $periodStart->copy()->addWeeks($offset)->endOfWeek(),
     ];
 
     $draft = Timesheet::factory()

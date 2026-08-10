@@ -61,7 +61,7 @@ readonly class TimesheetPeriodData implements Arrayable
     {
         return [
             'period_start' => $this->periodStart->toDateString(),
-            'period_end' => $this->periodEnd->toDateString(),
+            'period_end'   => $this->periodEnd->toDateString(),
         ];
     }
 }

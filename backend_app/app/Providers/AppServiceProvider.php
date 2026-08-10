@@ -8,6 +8,7 @@ use App\Contracts\Cache\ProjectListCacheInvalidator;
 use App\Contracts\Cache\WorkspaceCacheInvalidator;
 use App\Contracts\Queries\GetProjectList;
 use App\Contracts\Queries\GetWorkspaceSummary;
+use App\Contracts\Queries\Statistics\GetPersonalStatistics;
 use App\Infrastructure\Cache\NullProjectListCacheInvalidator;
 use App\Infrastructure\Cache\NullWorkspaceCacheInvalidator;
 use App\Infrastructure\Cache\RedisProjectListCacheInvalidator;
@@ -16,6 +17,7 @@ use App\Queries\CachedGetProjectList;
 use App\Queries\CachedGetWorkspaceSummary;
 use App\Queries\EloquentGetProjectList;
 use App\Queries\EloquentGetWorkspaceSummary;
+use App\Queries\Statistics\EloquentGetPersonalStatistics;
 use Cache;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Model;
@@ -70,6 +72,8 @@ class AppServiceProvider extends ServiceProvider
                 Cache::store(config('redis_features.project_list.store')),
             )
             : new NullProjectListCacheInvalidator);
+
+        $this->app->bind(GetPersonalStatistics::class, EloquentGetPersonalStatistics::class);
     }
 
     /**

@@ -59,7 +59,7 @@ it('serves a cached summary until its workspace tag is invalidated', function ()
 })->group('redis');
 
 it('invalidates summary counts after project membership and timesheet actions', function (): void {
-    $tenant = TenantFixture::create();
+    $tenant   = TenantFixture::create();
     $employee = $tenant->employee();
     flushRedisWorkspaceSummary($tenant->workspace);
 
@@ -76,26 +76,26 @@ it('invalidates summary counts after project membership and timesheet actions', 
         $membership = app(CreateProjectMember::class)->handle(
             $tenant->project,
             [
-                'user_id' => (int) $employee->getKey(),
+                'user_id'      => (int) $employee->getKey(),
                 'project_role' => ProjectRole::PARTICIPANT->value,
-                'active' => true,
+                'active'       => true,
             ],
         );
         $afterMembershipCreate = redisWorkspaceSummary($tenant->workspace, $employee);
 
-        $periodStart = today()->startOfWeek();
+        $periodStart      = today()->startOfWeek();
         $timesheetService = app(TimesheetService::class);
-        $timesheet = $timesheetService->create(
+        $timesheet        = $timesheetService->create(
             $tenant->project,
             $employee,
             TimesheetPeriodData::fromValidated([
                 'period_start' => $periodStart->toDateString(),
-                'period_end' => $periodStart->copy()->endOfWeek()->toDateString(),
+                'period_end'   => $periodStart->copy()->endOfWeek()->toDateString(),
             ]),
         );
         $afterTimesheetCreate = redisWorkspaceSummary($tenant->workspace, $employee);
 
-        $submitted = $timesheetService->submit($timesheet);
+        $submitted   = $timesheetService->submit($timesheet);
         $afterSubmit = redisWorkspaceSummary($tenant->workspace, $employee);
 
         $timesheetService->approve($tenant->admin, $submitted, null);
@@ -108,8 +108,8 @@ it('invalidates summary counts after project membership and timesheet actions', 
         $afterProjectDelete = redisWorkspaceSummary($tenant->workspace, $employee);
 
         expect($initial)->toMatchArray([
-            'projects_count' => 1,
-            'members_count' => 0,
+            'projects_count'         => 1,
+            'members_count'          => 0,
             'valid_timesheets_count' => 0,
         ])->and($afterProjectCreate['projects_count'])->toBe(2)
             ->and($afterMembershipCreate['members_count'])->toBe(1)
@@ -124,8 +124,8 @@ it('invalidates summary counts after project membership and timesheet actions', 
 })->group('redis');
 
 it('invalidates every viewer variant without touching another workspace', function (): void {
-    $tenantA = TenantFixture::create();
-    $tenantB = TenantFixture::create();
+    $tenantA   = TenantFixture::create();
+    $tenantB   = TenantFixture::create();
     $employeeA = $tenantA->employee();
 
     flushRedisWorkspaceSummary($tenantA->workspace);
@@ -144,9 +144,9 @@ it('invalidates every viewer variant without touching another workspace', functi
             (int) $tenantA->admin->getKey(),
         );
 
-        $adminA = redisWorkspaceSummary($tenantA->workspace, $tenantA->admin);
+        $adminA           = redisWorkspaceSummary($tenantA->workspace, $tenantA->admin);
         $employeeSummaryA = redisWorkspaceSummary($tenantA->workspace, $employeeA);
-        $cachedB = redisWorkspaceSummary($tenantB->workspace, $tenantB->admin);
+        $cachedB          = redisWorkspaceSummary($tenantB->workspace, $tenantB->admin);
 
         expect($adminA['projects_count'])->toBe(2)
             ->and($employeeSummaryA['projects_count'])->toBe(2)

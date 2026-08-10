@@ -12,36 +12,36 @@ beforeEach(function (): void {
 
 test('guest can login with valid credentials', function () {
     User::factory()->create([
-        'email' => 'test@mail.com',
+        'email'    => 'test@mail.com',
         'password' => 'password',
     ]);
 
     $this->actingAsGuest()->postJson('/api/v1/login', [
-        'email' => 'test@mail.com',
+        'email'    => 'test@mail.com',
         'password' => 'password',
     ])->assertOk();
 });
 
 test('login rejects invalid credentials', function () {
     User::factory()->create([
-        'email' => 'test@mail.com',
+        'email'    => 'test@mail.com',
         'password' => 'password',
     ]);
 
     $this->actingAsGuest()->postJson('/api/v1/login', [
-        'email' => 'not_present@mail.com',
+        'email'    => 'not_present@mail.com',
         'password' => 'password',
     ])->assertUnauthorized();
 });
 
 test('authenticated user cannot login again', function () {
     $user = User::factory()->create([
-        'email' => 'test@mail.com',
+        'email'    => 'test@mail.com',
         'password' => 'password',
     ]);
 
     $this->actingAs($user)->postJson('/api/v1/login', [
-        'email' => 'test@mail.com',
+        'email'    => 'test@mail.com',
         'password' => 'password',
     ])->assertForbidden()
         ->assertJson([
@@ -51,7 +51,7 @@ test('authenticated user cannot login again', function () {
 
 test('limits repeated login attempts', function () {
     $payload = [
-        'email' => 'test@example.com',
+        'email'    => 'test@example.com',
         'password' => 'wrong-password',
     ];
 

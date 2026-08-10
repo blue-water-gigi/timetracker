@@ -10,17 +10,17 @@ it('validates project periods consistently on create and partial update', functi
     $this->actingAs($tenant->admin);
 
     $this->postJson('/api/v1/workspaces/'.$tenant->workspace->id.'/projects', [
-        'name' => 'Invalid project',
-        'slug' => 'invalid-project',
+        'name'         => 'Invalid project',
+        'slug'         => 'invalid-project',
         'period_start' => '2026-08-01',
     ])->assertUnprocessable()
         ->assertJsonValidationErrors('period_end');
 
     $this->postJson('/api/v1/workspaces/'.$tenant->workspace->id.'/projects', [
-        'name' => 'Reverse project',
-        'slug' => 'reverse-project',
+        'name'         => 'Reverse project',
+        'slug'         => 'reverse-project',
         'period_start' => '2026-08-10',
-        'period_end' => '2026-08-01',
+        'period_end'   => '2026-08-01',
     ])->assertUnprocessable()
         ->assertJsonValidationErrors('period_end');
 
@@ -35,9 +35,9 @@ it('validates project periods consistently on create and partial update', functi
         ->assertJsonValidationErrors('period_start');
 
     $this->patchJson($tenant->projectUrl(), [
-        'description' => null,
+        'description'  => null,
         'period_start' => null,
-        'period_end' => null,
+        'period_end'   => null,
     ])->assertOk();
 
     expect($tenant->project->refresh()->period_start)->toBeNull()
@@ -46,10 +46,10 @@ it('validates project periods consistently on create and partial update', functi
 });
 
 it('returns only active projects visible through active membership', function () {
-    $tenant = TenantFixture::create();
+    $tenant   = TenantFixture::create();
     $employee = $tenant->employee();
     $tenant->membership($employee);
-    $hidden = Project::factory()->for($tenant->workspace)->create();
+    $hidden   = Project::factory()->for($tenant->workspace)->create();
     $inactive = Project::factory()->for($tenant->workspace)->create(['active' => false]);
     $tenant->membership($employee, project: $inactive);
 
@@ -65,7 +65,7 @@ it('returns only active projects visible through active membership', function ()
 });
 
 it('hides foreign tenant projects and soft deletes owned projects', function () {
-    $tenant = TenantFixture::create();
+    $tenant  = TenantFixture::create();
     $foreign = TenantFixture::create();
 
     $this->actingAs($tenant->admin)

@@ -18,18 +18,18 @@ class ProjectMemberFactory extends Factory
     public function definition(): array
     {
         return [
-            'project_id' => Project::factory(),
-            'user_id' => fn (array $attributes): int => $this->userIdForProject($attributes),
-            'project_role' => ProjectRole::PARTICIPANT,
+            'project_id'    => Project::factory(),
+            'user_id'       => fn (array $attributes): int => $this->userIdForProject($attributes),
+            'project_role'  => ProjectRole::PARTICIPANT,
             'approval_rank' => ProjectRole::PARTICIPANT->approvalRank(),
-            'active' => true,
+            'active'        => true,
         ];
     }
 
     public function withRole(ProjectRole $role): static
     {
         return $this->state(fn (): array => [
-            'project_role' => $role,
+            'project_role'  => $role,
             'approval_rank' => $role->approvalRank(),
         ]);
     }

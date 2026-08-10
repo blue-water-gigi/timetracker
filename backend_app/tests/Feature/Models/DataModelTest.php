@@ -18,9 +18,9 @@ use App\Services\Timesheet\TimesheetService;
 test('model defaults and protected attributes follow the domain contract', function () {
     $user = new User([
         'workspace_id' => 999,
-        'system_role' => SystemRole::ADMINISTRATOR,
-        'email' => 'employee@example.com',
-        'password' => 'password',
+        'system_role'  => SystemRole::ADMINISTRATOR,
+        'email'        => 'employee@example.com',
+        'password'     => 'password',
     ]);
 
     expect($user->workspace_id)->toBeNull()
@@ -31,7 +31,7 @@ test('model defaults and protected attributes follow the domain contract', funct
 });
 
 test('workspace stores only a join code digest and supports lookup', function () {
-    $joinCode = 'a-high-entropy-test-join-code';
+    $joinCode  = 'a-high-entropy-test-join-code';
     $workspace = Workspace::factory()->withJoinCode($joinCode)->create();
 
     expect($workspace->join_code_hash)->toBe(Workspace::hashJoinCode($joinCode))
@@ -41,15 +41,15 @@ test('workspace stores only a join code digest and supports lookup', function ()
 
 test('custom project pivot maps role to rank and maintains timestamps', function () {
     $workspace = Workspace::factory()->create();
-    $user = User::factory()->forWorkspace($workspace)->create();
-    $project = Project::factory()->create([
+    $user      = User::factory()->forWorkspace($workspace)->create();
+    $project   = Project::factory()->create([
         'workspace_id' => $workspace->id,
     ]);
 
     $project->users()->attach($user->id, [
-        'project_role' => ProjectRole::SENIOR,
+        'project_role'  => ProjectRole::SENIOR,
         'approval_rank' => ApprovalRank::PARTICIPANT,
-        'active' => true,
+        'active'        => true,
     ]);
 
     $membership = ProjectMember::query()->firstOrFail();
@@ -64,34 +64,34 @@ test('custom project pivot maps role to rank and maintains timestamps', function
 test('role and approval rank mapping is deterministic', function (ProjectRole $role, ApprovalRank $rank) {
     expect($role->approvalRank())->toBe($rank);
 })->with([
-    'participant' => [ProjectRole::PARTICIPANT, ApprovalRank::PARTICIPANT],
-    'senior' => [ProjectRole::SENIOR, ApprovalRank::SENIOR],
-    'manager' => [ProjectRole::MANAGER, ApprovalRank::MANAGER],
+    'participant'  => [ProjectRole::PARTICIPANT, ApprovalRank::PARTICIPANT],
+    'senior'       => [ProjectRole::SENIOR, ApprovalRank::SENIOR],
+    'manager'      => [ProjectRole::MANAGER, ApprovalRank::MANAGER],
     'project lead' => [ProjectRole::PROJECT_LEAD, ApprovalRank::PROJECT_LEAD],
 ]);
 
 test('timesheet creation enforces active membership and derives tenant fields', function () {
     $workspace = Workspace::factory()->create();
-    $user = User::factory()->forWorkspace($workspace)->create();
-    $project = Project::factory()->create(['workspace_id' => $workspace->id]);
+    $user      = User::factory()->forWorkspace($workspace)->create();
+    $project   = Project::factory()->create(['workspace_id' => $workspace->id]);
 
     $project->users()->attach($user->id, [
         'project_role' => ProjectRole::PARTICIPANT,
-        'active' => true,
+        'active'       => true,
     ]);
 
-    $service = app(TimesheetService::class);
+    $service   = app(TimesheetService::class);
     $timesheet = $service->create(
         $project,
         $user,
         TimesheetPeriodData::fromValidated([
             'period_start' => '2026-07-13',
-            'period_end' => '2026-07-19',
+            'period_end'   => '2026-07-19',
         ]),
     );
     $entry = $service->addEntry($timesheet, CreateTimeEntryData::fromValidated([
         'work_date' => '2026-07-14',
-        'hours' => 8,
+        'hours'     => 8,
     ]));
 
     expect($timesheet->workspace_id)->toBe($workspace->id)
@@ -104,51 +104,51 @@ test('timesheet creation enforces active membership and derives tenant fields', 
 
 test('timesheet rejects non-members and out-of-period entries', function () {
     $workspace = Workspace::factory()->create();
-    $member = User::factory()->forWorkspace($workspace)->create();
-    $outsider = User::factory()->forWorkspace($workspace)->create();
-    $project = Project::factory()->create(['workspace_id' => $workspace->id]);
-    $service = app(TimesheetService::class);
+    $member    = User::factory()->forWorkspace($workspace)->create();
+    $outsider  = User::factory()->forWorkspace($workspace)->create();
+    $project   = Project::factory()->create(['workspace_id' => $workspace->id]);
+    $service   = app(TimesheetService::class);
 
     expect(fn () => $service->create(
         $project,
         $outsider,
         TimesheetPeriodData::fromValidated([
             'period_start' => '2026-07-13',
-            'period_end' => '2026-07-19',
+            'period_end'   => '2026-07-19',
         ]),
     ))->toThrow(ProjectMembershipRequiredException::class);
 
     $project->users()->attach($member->id, [
         'project_role' => ProjectRole::PARTICIPANT,
-        'active' => true,
+        'active'       => true,
     ]);
     $timesheet = $service->create(
         $project,
         $member,
         TimesheetPeriodData::fromValidated([
             'period_start' => '2026-07-13',
-            'period_end' => '2026-07-19',
+            'period_end'   => '2026-07-19',
         ]),
     );
 
     expect(fn () => $service->addEntry($timesheet, CreateTimeEntryData::fromValidated([
         'work_date' => '2026-07-20',
-        'hours' => 8,
+        'hours'     => 8,
     ])))->toThrow(TimeEntryOutsideTimesheetPeriodException::class);
 });
 
 test('soft deletion archives tenant aggregates and preserves timesheet history', function () {
-    $workspace = Workspace::factory()->create();
+    $workspace    = Workspace::factory()->create();
     $organization = $workspace->organization;
-    $project = Project::factory()->for($workspace)->create();
-    $user = User::factory()->forWorkspace($workspace)->create();
+    $project      = Project::factory()->for($workspace)->create();
+    $user         = User::factory()->forWorkspace($workspace)->create();
     ProjectMember::factory()->for($project)->for($user)->create();
     $timesheet = Timesheet::factory()->for($project)->for($user)->create([
         'workspace_id' => $workspace->id,
     ]);
     $entry = $timesheet->entries()->create([
         'work_date' => $timesheet->period_start,
-        'hours' => 8,
+        'hours'     => 8,
     ]);
 
     $organization->archive();

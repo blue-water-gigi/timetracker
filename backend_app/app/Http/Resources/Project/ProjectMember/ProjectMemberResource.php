@@ -21,13 +21,13 @@ class ProjectMemberResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'project' => new ProjectResource($this->whenLoaded('project')),
-            'user' => new UserResource($this->whenLoaded('user')),
-            'projectRole' => $this->project_role,
+            'id'           => $this->id,
+            'project'      => new ProjectResource($this->whenLoaded('project')),
+            'user'         => new UserResource($this->whenLoaded('user')),
+            'projectRole'  => $this->project_role,
             'approvalRank' => $this->approval_rank,
-            'active' => $this->active,
-            'timestamps' => [
+            'active'       => $this->active,
+            'timestamps'   => [
                 'createdAt' => $this->created_at?->toIsoString(),
                 'updatedAt' => $this->updated_at?->toIsoString(),
             ],

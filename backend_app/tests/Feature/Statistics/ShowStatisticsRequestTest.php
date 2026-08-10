@@ -11,10 +11,10 @@ beforeEach(function (): void {
         $period = $request->period();
 
         return response()->json([
-            'period' => $period->toArray(),
+            'period'   => $period->toArray(),
             'previous' => [
                 'from' => $period->previousFrom()->toDateString(),
-                'to' => $period->previousTo()->toDateString(),
+                'to'   => $period->previousTo()->toDateString(),
             ],
         ]);
     });

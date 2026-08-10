@@ -30,7 +30,7 @@ final readonly class StatisticsPeriod implements Arrayable
     public static function fromValidated(array $attributes, ?CarbonImmutable $today = null): self
     {
         // we need from and to or nothing
-        $hasTo = isset($attributes['to']);
+        $hasTo   = isset($attributes['to']);
         $hasFrom = isset($attributes['from']);
 
         if ($hasTo !== $hasFrom) {
@@ -38,11 +38,11 @@ final readonly class StatisticsPeriod implements Arrayable
         }
 
         if ($hasFrom) {
-            $to = CarbonImmutable::parse($attributes['to'])->startOfDay();
+            $to   = CarbonImmutable::parse($attributes['to'])->startOfDay();
             $from = CarbonImmutable::parse($attributes['from'])->startOfDay();
         } else {
             $baseDate = $today instanceof CarbonImmutable ? $today->startOfDay() : CarbonImmutable::today();
-            $to = $baseDate->startOfDay();
+            $to       = $baseDate->startOfDay();
             // subtract month by default
             $from = $to->subDays(29);
         }
@@ -77,7 +77,7 @@ final readonly class StatisticsPeriod implements Arrayable
 
         while ($bucket->lessThanOrEqualTo($this->to)) {
             $buckets[] = $bucket;
-            $bucket = $this->granularity->nextBucket($bucket);
+            $bucket    = $this->granularity->nextBucket($bucket);
         }
 
         return $buckets;
@@ -110,8 +110,8 @@ final readonly class StatisticsPeriod implements Arrayable
     public function toArray(): array
     {
         return [
-            'from' => $this->from->toDateString(),
-            'to' => $this->to->toDateString(),
+            'from'        => $this->from->toDateString(),
+            'to'          => $this->to->toDateString(),
             'granularity' => $this->granularity->value,
         ];
     }

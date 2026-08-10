@@ -20,12 +20,12 @@ class UpdateWorkspaceRequest extends FormRequest
         $this->route('workspace');
 
         return [
-            'name' => ['sometimes', 'string', 'max:255'],
-            'slug' => ['prohibited'],
-            'description' => ['sometimes', 'nullable', 'string', 'max:500'],
-            'active' => ['sometimes', 'boolean'],
+            'name'            => ['sometimes', 'string', 'max:255'],
+            'slug'            => ['prohibited'],
+            'description'     => ['sometimes', 'nullable', 'string', 'max:500'],
+            'active'          => ['sometimes', 'boolean'],
             'organization_id' => ['prohibited'],
-            'join_code_hash' => ['prohibited'],
+            'join_code_hash'  => ['prohibited'],
         ];
     }
 }

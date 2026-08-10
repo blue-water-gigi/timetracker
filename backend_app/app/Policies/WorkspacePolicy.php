@@ -11,6 +11,19 @@ use Illuminate\Auth\Access\Response;
 
 class WorkspacePolicy
 {
+    public function viewPersonalStatistics(User $viewer, Workspace $workspace): Response
+    {
+        if ($viewer->isAdmin()) {
+            return $workspace->organization()->where('owner_id', $viewer->getKey())->exists()
+                ? Response::allow()
+                : Response::denyAsNotFound();
+        }
+
+        return $viewer->workspace_id === $workspace->getKey()
+            ? Response::allow()
+            : Response::denyAsNotFound();
+    }
+
     /**
      * Determine whether the user can view any models.
      */
@@ -31,9 +44,9 @@ class WorkspacePolicy
     public function view(User $user, Workspace $workspace): Response
     {
         return $user->isAdmin()
-            && $workspace->organization()->where('owner_id', $user->getKey())->exists()
-                ? Response::allow()
-                : Response::denyAsNotFound();
+        && $workspace->organization()->where('owner_id', $user->getKey())->exists()
+            ? Response::allow()
+            : Response::denyAsNotFound();
     }
 
     /**

@@ -26,13 +26,13 @@ class WorkspaceResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'description' => $this->whenNotNull($this->description),
-            'active' => $this->active,
+            'id'           => $this->id,
+            'name'         => $this->name,
+            'slug'         => $this->slug,
+            'description'  => $this->whenNotNull($this->description),
+            'active'       => $this->active,
             'organization' => new OrganizationResource($this->whenLoaded('organization')),
-            'projects' => new ProjectCollection($this->whenLoaded('projects')),
+            'projects'     => new ProjectCollection($this->whenLoaded('projects')),
 
             'summary' => $this->whenNotNull($this->formatSummary($this->summary)),
 
@@ -49,9 +49,9 @@ class WorkspaceResource extends JsonResource
         return $summary === null
             ? null
             : [
-                'workspaceId' => $summary['workspace_id'] ?? null,
-                'projectsCount' => $summary['projects_count'] ?? 0,
-                'membersCount' => $summary['members_count'] ?? 0,
+                'workspaceId'          => $summary['workspace_id']           ?? null,
+                'projectsCount'        => $summary['projects_count']         ?? 0,
+                'membersCount'         => $summary['members_count']          ?? 0,
                 'validTimesheetsCount' => $summary['valid_timesheets_count'] ?? 0,
             ];
     }

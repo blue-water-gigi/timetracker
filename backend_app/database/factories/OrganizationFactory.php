@@ -16,8 +16,8 @@ class OrganizationFactory extends Factory
     {
         return [
             'owner_id' => User::factory()->administrator(),
-            'name' => fake()->company(),
-            'slug' => fake()->unique()->slug(),
+            'name'     => fake()->company(),
+            'slug'     => fake()->unique()->slug(),
         ];
     }
 }

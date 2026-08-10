@@ -10,21 +10,21 @@ it('creates a workspace without exposing its join code digest', function () {
 
     $response = $this->actingAs($tenant->admin)
         ->postJson('/api/v1/organizations/'.$tenant->organization->id.'/workspaces', [
-            'name' => 'Backend team',
+            'name'        => 'Backend team',
             'description' => null,
         ])
         ->assertCreated()
         ->assertJsonMissingPath('data.join_code_hash');
 
     $workspace = Workspace::query()->findOrFail($response->json('data.id'));
-    $joinCode = $response->json('meta.joinCode');
+    $joinCode  = $response->json('meta.joinCode');
 
     expect($joinCode)->toBeString()->not->toBeEmpty()
         ->and($workspace->join_code_hash)->toBe(Workspace::hashJoinCode($joinCode));
 });
 
 it('rotates a join code and invalidates the old one', function () {
-    $tenant = TenantFixture::create();
+    $tenant  = TenantFixture::create();
     $oldHash = $tenant->workspace->join_code_hash;
 
     $response = $this->actingAs($tenant->admin)
@@ -39,7 +39,7 @@ it('rotates a join code and invalidates the old one', function () {
 });
 
 it('uses scoped bindings and archives a workspace with its projects', function () {
-    $tenant = TenantFixture::create();
+    $tenant  = TenantFixture::create();
     $foreign = TenantFixture::create();
 
     $this->actingAs($tenant->admin)

@@ -27,10 +27,10 @@ class StoreTimeEntryRequest extends FormRequest
     {
         return [
             'timesheet_id' => ['prohibited'],
-            'work_date' => ['bail', 'required', 'date'],
-            'description' => ['nullable', 'sometimes', 'string', 'max:500'],
-            'hours' => ['required', 'decimal:0,2', 'gte:0', 'lte:24'],
-            'is_overtime' => ['sometimes', 'boolean'],
+            'work_date'    => ['bail', 'required', 'date'],
+            'description'  => ['nullable', 'sometimes', 'string', 'max:500'],
+            'hours'        => ['required', 'decimal:0,2', 'gte:0', 'lte:24'],
+            'is_overtime'  => ['sometimes', 'boolean'],
         ];
     }
 

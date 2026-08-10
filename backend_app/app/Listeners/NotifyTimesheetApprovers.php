@@ -41,11 +41,11 @@ class NotifyTimesheetApprovers implements ShouldBeUnique, ShouldQueue
 
         if (! $timesheet
             || $timesheet->workspace_id !== $event->workspaceId
-            || $timesheet->project_id !== $event->projectId) {
+            || $timesheet->project_id   !== $event->projectId) {
             $this->logger->error('Timesheet not found or comes from other tenant.', [
                 'timesheet_id' => $event->timesheetId,
                 'workspace_id' => $event->workspaceId,
-                'project_id' => $event->projectId,
+                'project_id'   => $event->projectId,
             ]);
 
             return;
@@ -54,7 +54,7 @@ class NotifyTimesheetApprovers implements ShouldBeUnique, ShouldQueue
         if ($timesheet->status !== TimesheetStatus::SUBMITTED) {
             $this->logger->info('Stale submitted-timesheet notification skipped.', [
                 'timesheet_id' => $event->timesheetId,
-                'status' => $timesheet->status->value,
+                'status'       => $timesheet->status->value,
             ]);
 
             return;
@@ -98,7 +98,7 @@ class NotifyTimesheetApprovers implements ShouldBeUnique, ShouldQueue
         $this->logger->error('Failed to send notifications to timesheet approvers after all retries.', [
             'timesheet_id' => $event->timesheetId,
             'workspace_id' => $event->workspaceId,
-            'exception' => $th,
+            'exception'    => $th,
         ]);
     }
 

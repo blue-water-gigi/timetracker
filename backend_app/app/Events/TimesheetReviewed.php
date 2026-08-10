@@ -37,12 +37,12 @@ class TimesheetReviewed implements ShouldDispatchAfterCommit
     public function toSnapshot(): array
     {
         return [
-            'timesheetId' => $this->timesheetId,
-            'workspaceId' => $this->workspaceId,
-            'projectId' => $this->projectId,
-            'reviewerId' => $this->reviewerId,
-            'decision' => $this->decision,
-            'reviewedAt' => $this->reviewedAt,
+            'timesheetId'   => $this->timesheetId,
+            'workspaceId'   => $this->workspaceId,
+            'projectId'     => $this->projectId,
+            'reviewerId'    => $this->reviewerId,
+            'decision'      => $this->decision,
+            'reviewedAt'    => $this->reviewedAt,
             'reviewComment' => $this->reviewComment ?? null,
         ];
     }

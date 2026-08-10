@@ -23,8 +23,8 @@ readonly class InvalidateProjectListCache
         } catch (Throwable $th) {
             $this->logger->error('Project list cache invalidation failed.', [
                 'workspaceId' => $event->workspaceId,
-                'reason' => $event->reason,
-                'exception' => $th::class,
+                'reason'      => $event->reason,
+                'exception'   => $th::class,
             ]);
         }
     }

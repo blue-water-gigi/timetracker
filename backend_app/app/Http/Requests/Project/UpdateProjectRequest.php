@@ -30,15 +30,15 @@ class UpdateProjectRequest extends FormRequest
         $this->route('project');
 
         return [
-            'workspace_id' => ['prohibited'],
+            'workspace_id'       => ['prohibited'],
             'created_by_user_id' => ['prohibited'],
             'updated_by_user_id' => ['prohibited'],
-            'name' => ['sometimes', 'string', 'max:255'],
-            'description' => ['nullable', 'sometimes', 'string', 'max:500'],
-            'slug' => ['prohibited'],
-            'active' => ['sometimes', 'boolean'],
-            'period_start' => ['nullable', 'sometimes', 'date'],
-            'period_end' => ['nullable', 'sometimes', 'date'],
+            'name'               => ['sometimes', 'string', 'max:255'],
+            'description'        => ['nullable', 'sometimes', 'string', 'max:500'],
+            'slug'               => ['prohibited'],
+            'active'             => ['sometimes', 'boolean'],
+            'period_start'       => ['nullable', 'sometimes', 'date'],
+            'period_end'         => ['nullable', 'sometimes', 'date'],
         ];
     }
 
@@ -50,9 +50,9 @@ class UpdateProjectRequest extends FormRequest
                     return;
                 }
 
-                $attributes = $this->all();
+                $attributes     = $this->all();
                 $hasPeriodStart = array_key_exists('period_start', $attributes);
-                $hasPeriodEnd = array_key_exists('period_end', $attributes);
+                $hasPeriodEnd   = array_key_exists('period_end', $attributes);
 
                 if (! $hasPeriodStart && ! $hasPeriodEnd) {
                     return;

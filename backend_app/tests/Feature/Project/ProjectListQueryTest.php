@@ -23,9 +23,9 @@ it('honors the requested page and page size in the Eloquent query', function ():
     expect($list['meta'])
         ->toMatchArray([
             'current_page' => 2,
-            'per_page' => 2,
-            'total' => 5,
-            'last_page' => 3,
+            'per_page'     => 2,
+            'total'        => 5,
+            'last_page'    => 3,
         ])
         ->and($list['data'])->toHaveCount(2);
 });
@@ -39,7 +39,7 @@ it('keeps the existing HTTP pagination response contract', function (): void {
         ->assertJsonStructure([
             'data',
             'links' => ['first', 'last', 'prev', 'next'],
-            'meta' => [
+            'meta'  => [
                 'current_page',
                 'from',
                 'last_page',
@@ -63,8 +63,8 @@ it('validates project list pagination parameters', function (array $query, strin
         ->assertUnprocessable()
         ->assertJsonValidationErrors($field);
 })->with([
-    'page must be positive' => [['page' => 0], 'page'],
-    'page size must be positive' => [['perPage' => 0], 'perPage'],
+    'page must be positive'           => [['page' => 0], 'page'],
+    'page size must be positive'      => [['perPage' => 0], 'perPage'],
     'page size is limited to fifteen' => [['perPage' => 16], 'perPage'],
 ]);
 
@@ -77,7 +77,7 @@ it('resolves project index data through the query contract', function (): void {
             ->withArgs(fn (Workspace $workspace, $viewer, int $page, int $perPage): bool => (
                 $workspace->is($tenant->workspace)
                 && $viewer->is($tenant->admin)
-                && $page === 2
+                && $page    === 2
                 && $perPage === 15
             ))
             ->andReturn([

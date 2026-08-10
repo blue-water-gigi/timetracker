@@ -48,9 +48,9 @@ readonly class CreateTimeEntryData implements Arrayable
     public function toArray(): array
     {
         return [
-            'work_date' => $this->workDate->toDateString(),
+            'work_date'   => $this->workDate->toDateString(),
             'description' => $this->description,
-            'hours' => $this->hours,
+            'hours'       => $this->hours,
             'is_overtime' => $this->isOvertime,
         ];
     }
