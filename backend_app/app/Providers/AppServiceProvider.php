@@ -9,6 +9,7 @@ use App\Contracts\Cache\WorkspaceCacheInvalidator;
 use App\Contracts\Queries\GetProjectList;
 use App\Contracts\Queries\GetWorkspaceSummary;
 use App\Contracts\Queries\Statistics\GetPersonalStatistics;
+use App\Contracts\Queries\Statistics\GetProjectStatistics;
 use App\Contracts\Queries\Statistics\GetWorkspaceStatistics;
 use App\Infrastructure\Cache\NullProjectListCacheInvalidator;
 use App\Infrastructure\Cache\NullWorkspaceCacheInvalidator;
@@ -19,6 +20,7 @@ use App\Queries\CachedGetWorkspaceSummary;
 use App\Queries\EloquentGetProjectList;
 use App\Queries\EloquentGetWorkspaceSummary;
 use App\Queries\Statistics\EloquentGetPersonalStatistics;
+use App\Queries\Statistics\EloquentGetProjectStatistics;
 use App\Queries\Statistics\EloquentGetWorkspaceStatistics;
 use Cache;
 use Illuminate\Contracts\Foundation\Application;
@@ -77,6 +79,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(GetPersonalStatistics::class, EloquentGetPersonalStatistics::class);
         $this->app->bind(GetWorkspaceStatistics::class, EloquentGetWorkspaceStatistics::class);
+        $this->app->bind(GetProjectStatistics::class, EloquentGetProjectStatistics::class);
     }
 
     /**

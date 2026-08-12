@@ -32,6 +32,11 @@ class ProjectPolicy
             : Response::denyAsNotFound();
     }
 
+    public function viewStatistics(User $viewer, Project $project): Response
+    {
+        return $this->view($viewer, $project);
+    }
+
     /**
      * Determine whether the user can view the model.
      */

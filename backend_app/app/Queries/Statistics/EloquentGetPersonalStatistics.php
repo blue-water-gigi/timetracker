@@ -8,6 +8,7 @@ use App\Contracts\Queries\Statistics\GetPersonalStatistics;
 use App\Enums\TimesheetStatus;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Support\Statistics\InteractsWithActivity;
 use App\Support\Statistics\InteractsWithBuckets;
 use App\Support\Statistics\InteractsWithHours;
 use App\Support\Statistics\StatisticsPeriod;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 /** PostgreSQL only */
 readonly class EloquentGetPersonalStatistics implements GetPersonalStatistics
 {
-    use InteractsWithBuckets, InteractsWithHours;
+    use InteractsWithActivity, InteractsWithBuckets, InteractsWithHours;
 
     /**
      * @return array<string,mixed>
@@ -163,20 +164,7 @@ readonly class EloquentGetPersonalStatistics implements GetPersonalStatistics
                 )->toDateString()
             );
 
-        $activity = [];
-
-        for ($date = $period->from; $date->lte($period->to); $date = $date->addDay()) {
-            $key = $date->toDateString();
-            $row = $rows->get($key);
-
-            $activity[] = [
-                'date'          => $key,
-                'hours'         => $this->hours(data_get($row, 'hours')),
-                'overtimeHours' => $this->hours(data_get($row, 'overtime_hours')),
-            ];
-        }
-
-        return $activity;
+        return $this->activity($period, $rows);
     }
 
     /**
