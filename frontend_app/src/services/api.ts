@@ -15,6 +15,15 @@ import type {
   Workspace,
   WorkspacePayload,
 } from '@/types/domain'
+import type { AppNotification } from '@/types/notifications'
+import type {
+  PersonalStatistics,
+  ProjectStatistics,
+  ProjectTeamStatistics,
+  StatisticsQuery,
+  WorkspaceStatistics,
+} from '@/types/statistics'
+import { statisticsSearchParams } from '@/utils/statistics'
 
 const json = (body: unknown): string => JSON.stringify(body)
 
@@ -36,6 +45,19 @@ export const api = {
     password: string
   }) => request<ApiResponse<User>>('/register/employee', { method: 'POST', body: json(payload) }),
   logout: () => request<void>('/logout', { method: 'DELETE' }),
+
+  notifications: (page = 1) =>
+    request<CollectionResponse<AppNotification>>(`/notifications?page=${page}`),
+  markNotificationRead: (notificationId: string) =>
+    request<ApiResponse<AppNotification>>(`/notifications/${notificationId}`, {
+      method: 'PATCH',
+      body: json({}),
+    }),
+  markAllNotificationsRead: () =>
+    request<ApiResponse<{ unreadCount: number }>>('/notifications/read-all', {
+      method: 'PATCH',
+      body: json({}),
+    }),
 
   organizations: (page = 1) =>
     request<CollectionResponse<Organization>>(`/organizations?page=${page}`),
@@ -196,5 +218,22 @@ export const api = {
     request<void>(
       `/workspaces/${workspaceId}/projects/${projectId}/timesheets/${timesheetId}/entries/${entryId}`,
       { method: 'DELETE' },
+    ),
+
+  personalStatistics: (workspaceId: number, query: StatisticsQuery) =>
+    request<ApiResponse<PersonalStatistics>>(
+      `/workspaces/${workspaceId}/statistics/me?${statisticsSearchParams(query)}`,
+    ),
+  workspaceStatistics: (workspaceId: number, query: StatisticsQuery) =>
+    request<ApiResponse<WorkspaceStatistics>>(
+      `/workspaces/${workspaceId}/statistics?${statisticsSearchParams(query)}`,
+    ),
+  projectStatistics: (workspaceId: number, projectId: number, query: StatisticsQuery) =>
+    request<ApiResponse<ProjectStatistics>>(
+      `/workspaces/${workspaceId}/projects/${projectId}/statistics?${statisticsSearchParams(query)}`,
+    ),
+  projectTeamStatistics: (workspaceId: number, projectId: number, query: StatisticsQuery) =>
+    request<ApiResponse<ProjectTeamStatistics>>(
+      `/workspaces/${workspaceId}/projects/${projectId}/statistics/team?${statisticsSearchParams(query)}`,
     ),
 }

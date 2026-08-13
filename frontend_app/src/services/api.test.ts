@@ -42,4 +42,30 @@ describe('api requests', () => {
       expect.objectContaining({ credentials: 'include' }),
     )
   })
+
+  it('uses the notification list and read endpoints', async () => {
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve(
+        new Response(JSON.stringify({ data: [], meta: { unreadCount: 0 } }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await api.notifications(2)
+    await api.markNotificationRead('notification-1')
+    await api.markAllNotificationsRead()
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      '/api/v1/notifications?page=2',
+      '/api/v1/notifications/notification-1',
+      '/api/v1/notifications/read-all',
+    ])
+    expect(fetchMock.mock.calls.slice(1).map(([, options]) => options?.method)).toEqual([
+      'PATCH',
+      'PATCH',
+    ])
+  })
 })

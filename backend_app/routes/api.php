@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Auth\AdminRegistrationController;
 use App\Http\Controllers\Auth\EmployeeRegistrationController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Organization\OrganizationController;
 use App\Http\Controllers\Project\ProjectController;
 use App\Http\Controllers\Project\ProjectMember\ProjectMemberController;
@@ -26,6 +27,10 @@ Route::get('health', fn () => response()->json([
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::delete('logout', [LoginController::class, 'destroy'])->name('logout');
     Route::get('me', [LoginController::class, 'me'])->name('me');
+
+    Route::get('notifications', [NotificationController::class, 'index']);
+    Route::patch('notifications/read-all', [NotificationController::class, 'readAll']);
+    Route::patch('notifications/{notification}', [NotificationController::class, 'update']);
 
     Route::apiResource('organizations', OrganizationController::class);
     Route::apiResource('organizations/{organization}/workspaces', WorkspaceController::class)

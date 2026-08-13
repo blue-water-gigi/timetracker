@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { CalendarDays, Check, Clock3, Plus, Save, Send, Trash2, X } from '@lucide/vue'
 
 import AppButton from '@/components/ui/AppButton.vue'
+import DateInput from '@/components/ui/DateInput.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import FormField from '@/components/ui/FormField.vue'
@@ -346,10 +347,9 @@ onMounted(load)
               >
                 <template v-if="isEditable">
                   <td>
-                    <input
+                    <DateInput
                       v-model="entryDrafts[entry.id].workDate"
-                      class="input input--inline"
-                      type="date"
+                      class="input--inline"
                       :min="timesheet.periodStart.slice(0, 10)"
                       :max="timesheet.periodEnd.slice(0, 10)"
                       aria-label="Дата"
@@ -414,10 +414,9 @@ onMounted(load)
               </tr>
               <tr v-if="newEntry" class="entry-row--new">
                 <td>
-                  <input
+                  <DateInput
                     v-model="newEntry.workDate"
-                    class="input input--inline"
-                    type="date"
+                    class="input--inline"
                     :min="timesheet.periodStart.slice(0, 10)"
                     :max="timesheet.periodEnd.slice(0, 10)"
                     aria-label="Дата новой записи"
@@ -499,22 +498,10 @@ onMounted(load)
       <form class="form-stack" @submit.prevent="updatePeriod">
         <div class="form-grid">
           <FormField label="Начало" for-id="period-start" :error="fieldErrors.period_start?.[0]">
-            <input
-              id="period-start"
-              v-model="periodForm.periodStart"
-              class="input"
-              type="date"
-              required
-            />
+            <DateInput id="period-start" v-model="periodForm.periodStart" required />
           </FormField>
           <FormField label="Завершение" for-id="period-end" :error="fieldErrors.period_end?.[0]">
-            <input
-              id="period-end"
-              v-model="periodForm.periodEnd"
-              class="input"
-              type="date"
-              required
-            />
+            <DateInput id="period-end" v-model="periodForm.periodEnd" required />
           </FormField>
         </div>
         <div class="alert">

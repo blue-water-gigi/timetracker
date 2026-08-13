@@ -12,6 +12,7 @@ import {
   RotateCw,
 } from '@lucide/vue'
 
+import DateInput from '@/components/ui/DateInput.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import FormField from '@/components/ui/FormField.vue'
@@ -283,10 +284,10 @@ onMounted(load)
         </FormField>
         <div class="form-grid">
           <FormField label="Начало" for-id="project-start" :error="fieldErrors.period_start?.[0]">
-            <input id="project-start" v-model="projectForm.periodStart" class="input" type="date" />
+            <DateInput id="project-start" v-model="projectForm.periodStart" />
           </FormField>
           <FormField label="Завершение" for-id="project-end" :error="fieldErrors.period_end?.[0]">
-            <input id="project-end" v-model="projectForm.periodEnd" class="input" type="date" />
+            <DateInput id="project-end" v-model="projectForm.periodEnd" />
           </FormField>
         </div>
         <label class="switch-row">

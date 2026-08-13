@@ -7,7 +7,7 @@ const props = withDefaults(
     open: boolean
     title: string
     description?: string
-    size?: 'sm' | 'md' | 'lg'
+    size?: 'sm' | 'md' | 'lg' | 'xl'
   }>(),
   {
     description: undefined,

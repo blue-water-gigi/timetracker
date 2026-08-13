@@ -16,6 +16,7 @@ import {
   X,
 } from '@lucide/vue'
 
+import NotificationCenter from '@/components/layout/NotificationCenter.vue'
 import UserAvatar from '@/components/ui/UserAvatar.vue'
 import { useToast } from '@/composables/use-toast'
 import { firstError } from '@/services/api-client'
@@ -151,6 +152,7 @@ async function logout(): Promise<void> {
           <strong>{{ currentTitle }}</strong>
         </div>
         <div class="topbar__spacer" />
+        <NotificationCenter />
         <RouterLink :to="{ name: 'profile' }" class="topbar-account">
           <div class="topbar-account__text">
             <strong>{{ userName(auth.user) }}</strong>

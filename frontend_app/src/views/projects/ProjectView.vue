@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Archive, ArrowUpRight, CalendarPlus, Clock3, Pencil, Plus } from '@lucide/vue'
+import { Archive, ArrowUpRight, CalendarPlus, ChevronDown, Clock3, Pencil, Plus } from '@lucide/vue'
 
+import ProjectStatisticsPanel from '@/components/statistics/ProjectStatisticsPanel.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
+import DateInput from '@/components/ui/DateInput.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import FormField from '@/components/ui/FormField.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
@@ -29,6 +31,7 @@ const members = ref<ProjectMember[]>([])
 const workspaceUsers = ref<User[]>([])
 const timesheets = ref<Timesheet[]>([])
 const loading = ref(true)
+const statisticsOpen = ref(false)
 const saving = ref(false)
 const memberModalOpen = ref(false)
 const timesheetModalOpen = ref(false)
@@ -326,6 +329,33 @@ onMounted(load)
         </article>
       </section>
 
+      <section
+        class="project-statistics-shell"
+        :class="{ 'project-statistics-shell--open': statisticsOpen }"
+      >
+        <button
+          type="button"
+          class="project-statistics-shell__toggle"
+          :aria-expanded="statisticsOpen"
+          @click="statisticsOpen = !statisticsOpen"
+        >
+          <span>
+            <small>Аналитика проекта</small>
+            <strong>Статистика рабочего времени</strong>
+          </span>
+          <span class="project-statistics-shell__action">
+            {{ statisticsOpen ? 'Свернуть' : 'Развернуть' }}
+            <ChevronDown :size="18" />
+          </span>
+        </button>
+        <ProjectStatisticsPanel
+          v-if="statisticsOpen"
+          :workspace-id="workspaceId"
+          :project-id="projectId"
+          :members="members"
+        />
+      </section>
+
       <section class="dashboard-grid">
         <article class="card">
           <header class="card__header">
@@ -473,22 +503,10 @@ onMounted(load)
             for-id="sheet-start"
             :error="fieldErrors.period_start?.[0]"
           >
-            <input
-              id="sheet-start"
-              v-model="timesheetForm.periodStart"
-              class="input"
-              type="date"
-              required
-            />
+            <DateInput id="sheet-start" v-model="timesheetForm.periodStart" required />
           </FormField>
           <FormField label="Конец периода" for-id="sheet-end" :error="fieldErrors.period_end?.[0]">
-            <input
-              id="sheet-end"
-              v-model="timesheetForm.periodEnd"
-              class="input"
-              type="date"
-              required
-            />
+            <DateInput id="sheet-end" v-model="timesheetForm.periodEnd" required />
           </FormField>
         </div>
         <div class="form-actions">
@@ -561,24 +579,14 @@ onMounted(load)
             for-id="edit-project-start"
             :error="fieldErrors.period_start?.[0]"
           >
-            <input
-              id="edit-project-start"
-              v-model="projectForm.periodStart"
-              class="input"
-              type="date"
-            />
+            <DateInput id="edit-project-start" v-model="projectForm.periodStart" />
           </FormField>
           <FormField
             label="Завершение"
             for-id="edit-project-end"
             :error="fieldErrors.period_end?.[0]"
           >
-            <input
-              id="edit-project-end"
-              v-model="projectForm.periodEnd"
-              class="input"
-              type="date"
-            />
+            <DateInput id="edit-project-end" v-model="projectForm.periodEnd" />
           </FormField>
         </div>
         <label class="switch-row"
