@@ -7,7 +7,7 @@ namespace App\Support\Statistics;
 trait InteractsWithHours
 {
     /**
-     * Convert hours to float with certain precision
+     * Convert hours to rounded float with certain precision
      */
     public function hours(int|float|null|string $value, int $precision = 2): float
     {

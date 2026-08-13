@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\ProjectRole;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Workspace;
@@ -35,6 +36,27 @@ class ProjectPolicy
     public function viewStatistics(User $viewer, Project $project): Response
     {
         return $this->view($viewer, $project);
+    }
+
+    public function viewTeamStatistics(User $viewer, Project $project): Response
+    {
+        if ($this->ownsProject($viewer, $project)) {
+            return Response::allow();
+        }
+
+        if ($viewer->workspace_id !== $project->workspace_id) {
+            return Response::denyAsNotFound();
+        }
+
+        $allowed = $project->memberships()
+            ->whereBelongsTo($viewer)
+            ->where('active', true)
+            ->whereIn('project_role', ProjectRole::management())
+            ->exists();
+
+        return $allowed
+            ? Response::allow()
+            : Response::deny('You do not have permission to do this action.');
     }
 
     /**

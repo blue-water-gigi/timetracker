@@ -124,7 +124,7 @@ it('builds safe approved project aggregates without crossing resource boundaries
     DB::enableQueryLog();
     $response             = $this->actingAs($tenant->admin)->getJson(projectStatisticsUrl($tenant).'?from=2026-08-01&to=2026-08-31&granularity=day');
     $statisticsQueryCount = collect(DB::getQueryLog())
-        ->filter(fn (array $query): bool => str_contains($query['query'], 'time_entries') || str_contains($query['query'], 'project_members'))
+        ->filter(fn (array $query): bool => str_contains((string) $query['query'], 'time_entries') || str_contains((string) $query['query'], 'project_members'))
         ->count();
     DB::disableQueryLog();
 

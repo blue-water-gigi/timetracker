@@ -20,4 +20,18 @@ enum ProjectRole: string
             self::PARTICIPANT  => ApprovalRank::PARTICIPANT,
         };
     }
+
+    /**
+     * Get array of management roles of project
+     *
+     * @return array<int,ProjectRole>
+     */
+    public static function management(): array
+    {
+        return [
+            self::PROJECT_LEAD,
+            self::MANAGER,
+            self::SENIOR,
+        ];
+    }
 }

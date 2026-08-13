@@ -10,6 +10,7 @@ use App\Http\Controllers\Project\ProjectController;
 use App\Http\Controllers\Project\ProjectMember\ProjectMemberController;
 use App\Http\Controllers\Statistics\PersonalStatisticsController;
 use App\Http\Controllers\Statistics\ProjectStatisticsController;
+use App\Http\Controllers\Statistics\ProjectTeamStatisticsController;
 use App\Http\Controllers\Statistics\WorkspaceStatisticsController;
 use App\Http\Controllers\Timesheet\TimeEntryController;
 use App\Http\Controllers\Timesheet\TimesheetController;
@@ -62,6 +63,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/workspaces/{workspace}/statistics/me', PersonalStatisticsController::class);
     Route::get('/workspaces/{workspace}/statistics', WorkspaceStatisticsController::class);
     Route::get('/workspaces/{workspace}/projects/{project}/statistics', ProjectStatisticsController::class)
+        ->scopeBindings();
+    Route::get('/workspaces/{workspace}/projects/{project}/statistics/team', ProjectTeamStatisticsController::class)
         ->scopeBindings();
 });
 
