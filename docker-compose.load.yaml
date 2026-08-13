@@ -1,0 +1,87 @@
+services:
+    postgres-load-prepare:
+        image: postgres:17-alpine
+        environment:
+            PGPASSWORD: admin
+        command:
+            - sh
+            - -ec
+            - |
+                if [ "$$(psql -h postgres -U admin -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = 'time_track_load'")" != "1" ]; then
+                    createdb -h postgres -U admin time_track_load
+                fi
+        networks:
+            - backend_app
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+    php-load:
+        build:
+            context: ./
+            dockerfile: ./docker/backend/php/dev.Dockerfile
+        environment:
+            APP_ENV: local
+            APP_DEBUG: "false"
+            APP_URL: http://nginx-load
+            HOME: /tmp
+            DB_CONNECTION: pgsql
+            DB_HOST: postgres
+            DB_PORT: 5432
+            DB_DATABASE: time_track_load
+            DB_USERNAME: admin
+            DB_PASSWORD: admin
+            CACHE_STORE: redis
+            CACHE_PREFIX: "timetracker:load:cache:"
+            REDIS_HOST: redis
+            REDIS_PREFIX: "timetracker:load:"
+            SESSION_DRIVER: database
+            SESSION_COOKIE: timetracker_load_session
+            SANCTUM_STATEFUL_DOMAINS: nginx-load,localhost:8001,127.0.0.1:8001
+            LOAD_TEST_PASSWORD: ${LOAD_TEST_PASSWORD:-local-load-password}
+            XDEBUG_MODE: "off"
+        volumes:
+            - ./backend_app:/app/
+            - ./docker/backend/php/load.custom.ini:/usr/local/etc/php/conf.d/99-load.ini:ro
+        user: "1000:1000"
+        networks:
+            - backend_app
+        depends_on:
+            postgres-load-prepare:
+                condition: service_completed_successfully
+            redis:
+                condition: service_healthy
+
+    nginx-load:
+        image: nginx:1.30-alpine
+        ports:
+            - "8001:80"
+        volumes:
+            - ./docker/nginx/load.conf:/etc/nginx/conf.d/default.conf:ro
+            - ./backend_app:/app:ro
+        networks:
+            - backend_app
+        depends_on:
+            - php-load
+        healthcheck:
+            test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/api/v1/health >/dev/null 2>&1"]
+            interval: 5s
+            timeout: 3s
+            retries: 12
+
+    k6:
+        image: grafana/k6:2.1.0
+        profiles:
+            - performance
+        environment:
+            BASE_URL: http://nginx-load
+            LOAD_TEST_PASSWORD: ${LOAD_TEST_PASSWORD:-local-load-password}
+        volumes:
+            - ./backend_app/tests/Performance:/scripts:ro
+            - ./backend_app/tests/Performance/results:/results
+        user: "1000:1000"
+        networks:
+            - backend_app
+        depends_on:
+            nginx-load:
+                condition: service_healthy
