@@ -23,7 +23,7 @@ test('guest cannot access notifications', function (): void {
 });
 
 test('user sees only own notifications in newest first order with unread count', function (): void {
-    $user = User::factory()->create();
+    $user      = User::factory()->create();
     $otherUser = User::factory()->create();
 
     $user->notifyNow(reviewedNotification(101));
@@ -61,7 +61,7 @@ test('user can mark an own notification as read', function (): void {
 });
 
 test('user cannot mark another users notification as read', function (): void {
-    $user = User::factory()->create();
+    $user      = User::factory()->create();
     $otherUser = User::factory()->create();
     $otherUser->notifyNow(reviewedNotification(999));
     $notification = $otherUser->notifications()->firstOrFail();
@@ -74,7 +74,7 @@ test('user cannot mark another users notification as read', function (): void {
 });
 
 test('user can mark all own notifications as read', function (): void {
-    $user = User::factory()->create();
+    $user      = User::factory()->create();
     $otherUser = User::factory()->create();
     $user->notifyNow(reviewedNotification(101));
     $user->notifyNow(reviewedNotification(102));

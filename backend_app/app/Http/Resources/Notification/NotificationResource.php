@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Notification;
 
-use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Notifications\DatabaseNotification;
 
 /** @mixin DatabaseNotification */
 class NotificationResource extends JsonResource
