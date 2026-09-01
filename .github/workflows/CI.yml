@@ -1,0 +1,128 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  backend:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend_app
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: timetracker_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - "5432:5432"
+
+      redis:
+        image: redis:8-alpine
+        ports:
+          - "6379:6379"
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v6
+
+      - name: setup php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, bcmath, mbstring, intl, redis, xdebug, gd, opcache, pcntl, sockets
+          coverage: none
+
+      - name: install compose dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: prepare env
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run migrations
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: timetracker_test
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
+        run: php artisan migrate --force
+
+      - name: run pint
+        run: ./vendor/bin/pint --test
+
+      - name: run PHPStan
+        run: ./vendor/bin/phpstan analyse
+
+      - name: run tests
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: timetracker_test
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
+        run: php artisan test
+
+  frontend:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend_app
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend_app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Build frontend
+        run: npm run build
+
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Validate Docker Compose
+        run: docker compose -f docker-compose.yaml config
